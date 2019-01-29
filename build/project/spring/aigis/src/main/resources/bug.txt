@@ -1,0 +1,4 @@
+036_card_1.png
+188_card_1.png
+card_null=ba03bf9e03940e468d0d67dc7a166ffc
+cg_null=77e8475e8dd35ccb9dc7d8b6a9f86186

@@ -1,0 +1,65 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+div {
+    margin: auto;
+    height: auto;
+}
+
+.warp {
+    width: 100%;
+    text-align: center;
+}
+
+.content {
+    width: 1200px;
+}
+
+.sex {
+    width: 50px;
+}
+
+.rare {
+    width: 50px;
+}
+
+.class {
+    width: 1100px;
+}
+
+.class input {
+    margin-left: 20px;
+}
+
+.top {
+    margin-top: 50px;
+    height: auto;
+}
+
+.left {
+    float: left;
+}
+
+.inline-block {
+    margin-left: 20px;
+    display: inline-block;
+}
+
+.character {
+    margin-top: 50px;
+}
+
+.url {
+    margin-top: 50px;
+}
+
+img {
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+.clear {
+    clear: both;
+}

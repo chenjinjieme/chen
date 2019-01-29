@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>index</title>
+    <link rel="stylesheet" th:href="@{/css/aigis.css}">
+</head>
+<body>
+<div class="warp">
+    <div class="content">
+        <div>
+            <div class="sex top left">
+                <div>
+                    <input name="sex" type="radio" value="女" th:checked="${sex}=='女'">
+                    <span>女</span>
+                </div>
+                <div>
+                    <input name="sex" type="radio" value="男" th:checked="${sex}=='男'">
+                    <span>男</span>
+                </div>
+            </div>
+            <div class="rare top left">
+                <div th:each="r:${rares}">
+                    <input name="rare" type="radio" th:value="${r.rare}" th:checked="${r.rare}==${rare}">
+                    <span th:text="${r.translate}"></span>
+                </div>
+            </div>
+            <div class="class top left">
+                <div class="left" th:each="c:${classes}">
+                    <input name="class" type="radio" th:value="${c.class}" th:checked="${c.class}==${class}">
+                    <span th:text="|${c.class} / ${c.translate}|"></span>
+                </div>
+            </div>
+            <div class="clear"></div>
+        </div>
+        <div class="character">
+            <div class="inline-block" th:each="c:${characters}">
+                <input name="character" type="radio" th:value="${c.name}" th:checked="${c.name}==${character}">
+                <span th:text="${c.name}"></span>
+            </div>
+        </div>
+        <div class="png">
+            <div class="inline-block" th:each="p:${pngs}">
+                <input name="png" type="radio" th:value="${p.url}" th:id="${p.name}" th:checked="${p.name}==${png}">
+                <span th:text="${p.name+(p.count==null?'':'('+p.count+')')}"></span>
+            </div>
+        </div>
+    </div>
+    <div class="img">
+        <img th:if="${img!=null}" th:src="${img}">
+    </div>
+</div>
+<script th:src="@{/js/jquery-3.3.1.min.js}"></script>
+<script th:src="@{/js/aigis.js}"></script>
+</body>
+</html>

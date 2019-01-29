@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>show</title>
+</head>
+<body>
+<div class="warp">
+    <div>
+        <a href="javascript:ne()">new</a>
+        <a href="javascript:a()">all</a>
+        <a href="javascript:nu()">null</a>
+        <a href="javascript:l()">load</a>
+    </div>
+    <div class="update" hidden th:fragment="update">
+        <input name="name">
+        <select name="sex">
+            <option value="-1">无</option>
+            <option value="0" selected="selected">女</option>
+            <option value="1">男</option>
+        </select>
+        <select name="rare">
+            <option th:each="r:${rares}" th:value="${r.id}" th:selected="${r.id==6}"
+                    th:text="${r.translate}"></option>
+        </select>
+        <select name="class">
+            <option th:each="c:${classes}" th:value="${c.id}" th:selected="${c.id==1}"
+                    th:text="|${c.class} / ${c.translate}|"></option>
+        </select>
+        <button type="button" onclick="u($(this))">更新名字</button>
+    </div>
+    <div class="content">
+        <div class="character" th:each="c:${characters}">
+            <div th:class="${c.character}==''?'check null':(${c.character}!=null?'check':'')"
+                 th:hidden="${c.character}==null or ${status}=='all'?false:(${status}=='new'?${c.character}!=null:${c.character}!='')">
+                <p th:text="${c.id}"></p>
+                <p th:if="${c.character}!=null" th:text="${c.character}"></p>
+                <p th:if="${c.character}==null" th:include="::update"></p>
+                <div class="url" th:each="p:${c.pngs}">
+                    <p th:text="|${p.name}${p.count==null?'':'('+p.count+')'}|"></p>
+                    <img class="lazy" th:data-original="@{http://assets.millennium-war.net/{url}(url=${p.url})}"
+                         src="http://assets.millennium-war.net/5d4750d4580320282bee09992fb752ae27e4958e/77e8475e8dd35ccb9dc7d8b6a9f86186">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/jquery-3.3.1.min.js}"></script>
+<script th:src="@{/js/jquery.lazyload.min.js}"></script>
+<script th:src="@{/js/show.js}"></script>
+</body>
+</html>

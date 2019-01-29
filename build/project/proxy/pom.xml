@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.chen</groupId>
+        <artifactId>project</artifactId>
+        <version>0.2.1</version>
+    </parent>
+    <artifactId>proxy</artifactId>
+    <properties>
+        <compiler-arg>--add-exports=java.base/sun.nio.ch=com.chen.proxy</compiler-arg>
+        <main-class>com.chen.test.Test</main-class>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.chen</groupId>
+            <artifactId>util</artifactId>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

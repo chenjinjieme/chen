@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chen.aigis.dao.CharacterDao">
+    <select id="get" resultType="map">
+        SELECT c.name
+        FROM `character` c
+                 LEFT JOIN sex s ON c.sex = s.id
+                 LEFT JOIN rare r ON c.rare = r.id
+                 LEFT JOIN class cl on c.class = cl.id
+        WHERE s.sex = #{sex}
+          AND r.rare = #{rare}
+          AND cl.class = #{class}
+    </select>
+    <insert id="add">
+        INSERT `character` (id, name, sex, rare, class) VALUE (#{id}, #{name}, #{sex}, #{rare}, #{class})
+    </insert>
+    <delete id="delete">
+        DELETE
+        FROM `character`
+        WHERE id = #{id}
+    </delete>
+</mapper>
