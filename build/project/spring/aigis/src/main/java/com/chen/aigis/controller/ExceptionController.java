@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Map;
 
-import static com.chen.util.data.ControllerUtil.fail;
+import static com.chen.spring.base.data.ControllerUtil.fail;
 
 @RestControllerAdvice
 public class ExceptionController {

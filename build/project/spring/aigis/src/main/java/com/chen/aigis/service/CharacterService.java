@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-import static com.chen.util.data.ControllerUtil.execute;
-import static com.chen.util.data.ControllerUtil.putData;
+import static com.chen.spring.base.data.ControllerUtil.execute;
+import static com.chen.spring.base.data.ControllerUtil.putData;
 
 @Service
 public class CharacterService {

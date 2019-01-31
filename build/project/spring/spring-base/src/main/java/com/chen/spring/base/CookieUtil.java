@@ -1,4 +1,4 @@
-package com.chen.util;
+package com.chen.spring.base;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;

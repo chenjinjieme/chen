@@ -6,13 +6,13 @@
     <parent>
         <groupId>com.chen</groupId>
         <artifactId>spring</artifactId>
-        <version>0.3.0</version>
+        <version>0.3.1</version>
     </parent>
     <artifactId>aigis</artifactId>
     <dependencies>
         <dependency>
             <groupId>com.chen</groupId>
-            <artifactId>util-spring</artifactId>
+            <artifactId>spring-base</artifactId>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>

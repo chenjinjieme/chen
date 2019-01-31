@@ -1,4 +1,4 @@
-package com.chen.util.data;
+package com.chen.spring.base.data;
 
 import com.github.pagehelper.Page;
 
