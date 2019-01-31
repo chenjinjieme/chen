@@ -1,7 +1,7 @@
 package com.chen.png;
 
-import com.chen.util.zip.CRC;
-import com.chen.util.zip.ZlibUtil;
+import com.chen.base.zip.CRC;
+import com.chen.base.zip.ZlibUtil;
 
 import java.io.*;
 import java.util.ArrayList;

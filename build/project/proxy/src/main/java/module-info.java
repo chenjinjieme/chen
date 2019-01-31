@@ -1,3 +1,3 @@
 module com.chen.proxy {
-    requires com.chen.util;
+    requires com.chen.base;
 }

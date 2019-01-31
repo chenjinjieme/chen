@@ -1,3 +1,3 @@
 module com.chen.png {
-    requires com.chen.util;
+    requires com.chen.base;
 }

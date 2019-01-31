@@ -2,7 +2,7 @@ package com.chen.aigis.service;
 
 import com.chen.aigis.dao.PngDao;
 import com.chen.aigis.dao.URLDao;
-import com.chen.util.data.Parameter;
+import com.chen.base.data.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

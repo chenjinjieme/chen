@@ -8,11 +8,5 @@
         <artifactId>project</artifactId>
         <version>0.3.0</version>
     </parent>
-    <artifactId>png</artifactId>
-    <dependencies>
-        <dependency>
-            <groupId>com.chen</groupId>
-            <artifactId>base</artifactId>
-        </dependency>
-    </dependencies>
+    <artifactId>base</artifactId>
 </project>
