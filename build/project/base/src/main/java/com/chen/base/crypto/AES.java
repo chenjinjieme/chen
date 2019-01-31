@@ -23,17 +23,15 @@ public class AES {
             encryptCipher.init(Cipher.ENCRYPT_MODE, secretKey);
             decryptCipher.init(Cipher.DECRYPT_MODE, secretKey);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
-            throw new RuntimeException(e);
+            throw new AESException(e);
         }
     }
 
     public byte[] encrypt(byte[] bytes) {
-        synchronized (encryptCipher) {
-            try {
-                return encryptCipher.doFinal(bytes);
-            } catch (IllegalBlockSizeException | BadPaddingException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            return encryptCipher.doFinal(bytes);
+        } catch (IllegalBlockSizeException | BadPaddingException e) {
+            throw new AESException(e);
         }
     }
 
@@ -42,12 +40,10 @@ public class AES {
     }
 
     public byte[] decrypt(byte[] bytes) {
-        synchronized (decryptCipher) {
-            try {
-                return decryptCipher.doFinal(bytes);
-            } catch (IllegalBlockSizeException | BadPaddingException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            return decryptCipher.doFinal(bytes);
+        } catch (IllegalBlockSizeException | BadPaddingException e) {
+            throw new AESException(e);
         }
     }
 
@@ -56,7 +52,7 @@ public class AES {
     }
 
     private static class AESException extends RuntimeException {
-        private AESException(Throwable cause) {
+        AESException(Throwable cause) {
             super(cause);
         }
     }
