@@ -2,7 +2,7 @@ package com.chen.aigis.service;
 
 import com.chen.aigis.dao.PngDao;
 import com.chen.aigis.dao.URLDao;
-import com.chen.base.data.Parameter;
+import com.chen.core.base.data.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +36,7 @@ public class URLService {
     }
 
     public Map<String, Object> add(MultipartFile file) {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream())); FileWriter writer = new FileWriter("/Users/admin/IdeaProjects/aigis/aigis/src/main/resources/aigis.yml")) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream())); FileWriter writer = new FileWriter("/Users/admin/IdeaProjects/chen/build/project/spring/aigis/src/main/resources/aigis.yml")) {
             StringBuilder stringBuilder = new StringBuilder();
             int readSize;
             for (char[] chars = new char[1024]; (readSize = reader.read(chars)) != -1; )
@@ -60,7 +60,7 @@ public class URLService {
         Map<String, Object> all = new HashMap<>();
         Parameter data = new Parameter();
         urlDao.getAll().forEach(url -> all.put(url.get("name").toString(), url.get("url")));
-        try (FileReader reader = new FileReader("/Users/admin/IdeaProjects/aigis/aigis/src/main/resources/aigis.yml")) {
+        try (FileReader reader = new FileReader("/Users/admin/IdeaProjects/chen/build/project/spring/aigis/src/main/resources/aigis.yml")) {
             Map<String, Map<String, String>> load = Yml.INSTANCE.yaml.load(reader);
             List<Map<String, Object>> add = new ArrayList<>();
             List<Map<String, Object>> png = new ArrayList<>();

@@ -6,23 +6,22 @@
     <parent>
         <groupId>com.chen</groupId>
         <artifactId>build</artifactId>
-        <version>0.3.2</version>
+        <version>0.4.0</version>
     </parent>
     <artifactId>project</artifactId>
     <packaging>pom</packaging>
     <properties>
         <net.sourceforge.nekohtml.nekohtml>1.9.22</net.sourceforge.nekohtml.nekohtml>
         <org.apache.httpcomponents.httpclient>4.5.7</org.apache.httpcomponents.httpclient>
-        <org.junit.jupiter.junit-jupiter-api>5.3.2</org.junit.jupiter.junit-jupiter-api>
-        <org.projectlombok.lombok>1.18.4</org.projectlombok.lombok>
+        <org.junit.jupiter.junit-jupiter-api>5.4.0</org.junit.jupiter.junit-jupiter-api>
+        <org.projectlombok.lombok>1.18.6</org.projectlombok.lombok>
         <org.yaml.snakeyaml>1.23</org.yaml.snakeyaml>
     </properties>
     <modules>
-        <module>base</module>
-        <module>proxy</module>
-        <module>png</module>
-        <module>bt</module>
-        <module>nhentai</module>
+        <module>core</module>
+        <module>file</module>
+        <module>app</module>
+        <module>test</module>
         <module>spring</module>
     </modules>
     <dependencies>
@@ -38,6 +37,16 @@
             <dependency>
                 <groupId>com.chen</groupId>
                 <artifactId>base</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chen</groupId>
+                <artifactId>bencode</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.chen</groupId>
+                <artifactId>torrent</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

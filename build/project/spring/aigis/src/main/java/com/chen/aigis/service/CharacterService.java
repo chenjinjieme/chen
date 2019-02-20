@@ -1,7 +1,7 @@
 package com.chen.aigis.service;
 
 import com.chen.aigis.dao.CharacterDao;
-import com.chen.base.data.Parameter;
+import com.chen.core.base.data.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

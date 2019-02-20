@@ -6,14 +6,14 @@
     <parent>
         <groupId>com.chen</groupId>
         <artifactId>project</artifactId>
-        <version>0.3.2</version>
+        <version>0.4.0</version>
     </parent>
     <artifactId>spring</artifactId>
     <packaging>pom</packaging>
     <properties>
         <start-class/>
         <com.github.pagehelper.pagehelper-spring-boot-starter>1.2.10</com.github.pagehelper.pagehelper-spring-boot-starter>
-        <mysql.mysql-connector-java>8.0.14</mysql.mysql-connector-java>
+        <mysql.mysql-connector-java>8.0.15</mysql.mysql-connector-java>
         <org.springframework.boot>2.1.2.RELEASE</org.springframework.boot>
     </properties>
     <modules>
