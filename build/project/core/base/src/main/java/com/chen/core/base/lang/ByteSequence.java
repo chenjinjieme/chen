@@ -6,8 +6,6 @@ public class ByteSequence {
     private final byte[] bytes;
     private final int offset;
     private final int length;
-    private int hashCode;
-    private String string;
 
     public ByteSequence(byte[] bytes) {
         this.bytes = bytes;
@@ -126,16 +124,17 @@ public class ByteSequence {
         return start == 0 && end == length ? this : new ByteSequence(bytes, ix(start), end - start);
     }
 
+    public int hashCode() {
+        var hashCode = 0;
+        for (int i = offset, l = offset + length; i < l; i++) hashCode = 31 * hashCode + (bytes[i] & 0xff);
+        return hashCode;
+    }
+
     public boolean equals(Object obj) {
         return obj instanceof ByteSequence && Arrays.equals(((ByteSequence) obj).bytes, ((ByteSequence) obj).offset, ((ByteSequence) obj).offset + ((ByteSequence) obj).length, bytes, offset, offset + length);
     }
 
-    public int hashCode() {
-        if (hashCode == 0) for (int i = offset, l = offset + length; i < l; i++) hashCode = 31 * hashCode + (bytes[i] & 0xff);
-        return hashCode;
-    }
-
     public String toString() {
-        return string == null ? string = new String(bytes, offset, length) : string;
+        return new String(bytes, offset, length);
     }
 }

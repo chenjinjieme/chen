@@ -34,14 +34,12 @@ public class ByteString implements Value {
         buffer.put(java.lang.Integer.toString(sequence.length()).getBytes()).put((byte) ':').put(sequence.bytes(), sequence.offset(), sequence.length());
     }
 
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj instanceof ByteString) return ((ByteString) obj).sequence.equals(sequence);
-        return false;
-    }
-
     public int hashCode() {
         return sequence.hashCode();
+    }
+
+    public boolean equals(Object obj) {
+        return obj == this || obj instanceof ByteString && ((ByteString) obj).sequence.equals(sequence);
     }
 
     public String toString() {

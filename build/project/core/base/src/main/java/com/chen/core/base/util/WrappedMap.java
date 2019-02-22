@@ -105,4 +105,16 @@ public class WrappedMap<K, V> implements Map<K, V> {
     public V merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
         return map.merge(key, value, remappingFunction);
     }
+
+    public int hashCode() {
+        return map.hashCode();
+    }
+
+    public boolean equals(Object obj) {
+        return obj == this || obj instanceof Map && map.equals(obj);
+    }
+
+    public String toString() {
+        return map.toString();
+    }
 }

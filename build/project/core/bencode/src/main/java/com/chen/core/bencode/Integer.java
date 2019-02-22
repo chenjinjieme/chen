@@ -10,6 +10,10 @@ public class Integer implements Value {
         for (int b = buffer.get(); b != 'e'; b = buffer.get()) value = value * 10 + b - '0';
     }
 
+    public long value() {
+        return value;
+    }
+
     public int length() {
         return toString().length() + 2;
     }

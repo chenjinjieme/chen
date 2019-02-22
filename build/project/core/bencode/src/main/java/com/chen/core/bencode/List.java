@@ -6,6 +6,10 @@ import com.chen.core.base.util.WrappedList;
 import java.util.ArrayList;
 
 public class List extends WrappedList<Value> implements Value {
+    public List(java.util.List<Value> list) {
+        super(list);
+    }
+
     private List(ByteBuffer buffer) {
         super(new ArrayList<>());
         if (buffer.get() != 'l') throw new ParseException("not a list");

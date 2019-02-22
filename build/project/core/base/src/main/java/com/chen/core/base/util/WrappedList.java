@@ -137,4 +137,16 @@ public class WrappedList<E> implements List<E> {
     public Stream<E> parallelStream() {
         return list.parallelStream();
     }
+
+    public int hashCode() {
+        return list.hashCode();
+    }
+
+    public boolean equals(Object obj) {
+        return obj == this || obj instanceof List && list.equals(obj);
+    }
+
+    public String toString() {
+        return list.toString();
+    }
 }
