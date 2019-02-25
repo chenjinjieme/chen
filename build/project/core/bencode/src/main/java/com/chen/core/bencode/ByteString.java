@@ -1,7 +1,7 @@
 package com.chen.core.bencode;
 
-import com.chen.core.base.lang.ByteSequence;
-import com.chen.core.base.nio.ByteBuffer;
+import com.chen.core.lang.ByteSequence;
+import com.chen.core.nio.ByteBuffer;
 
 public class ByteString implements Value {
     private ByteSequence sequence;

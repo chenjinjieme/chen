@@ -4,7 +4,7 @@ import com.chen.aigis.dao.CharacterDao;
 import com.chen.aigis.dao.ClassDao;
 import com.chen.aigis.dao.PngDao;
 import com.chen.aigis.dao.RareDao;
-import com.chen.core.base.data.Parameter;
+import com.chen.core.data.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;

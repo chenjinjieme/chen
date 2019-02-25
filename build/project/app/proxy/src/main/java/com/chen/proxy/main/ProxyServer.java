@@ -1,6 +1,6 @@
 package com.chen.proxy.main;
 
-import com.chen.core.base.crypto.AES;
+import com.chen.core.crypto.AES;
 import com.chen.proxy.nio.channels.ProxyChannel;
 import com.chen.proxy.nio.channels.ServerProxyChannel;
 

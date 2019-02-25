@@ -1,7 +1,7 @@
 package com.chen.proxy.nio.channels;
 
-import com.chen.core.base.net.URL;
-import com.chen.core.base.net.http.Request;
+import com.chen.core.net.URL;
+import com.chen.core.net.http.Request;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

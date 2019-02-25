@@ -1,9 +1,9 @@
 package com.chen.file.torrent;
 
-import com.chen.core.base.math.HexUtil;
-import com.chen.core.base.nio.ByteBuffer;
-import com.chen.core.base.nio.file.Files;
-import com.chen.core.base.security.MessageDigest;
+import com.chen.core.math.HexUtil;
+import com.chen.core.nio.ByteBuffer;
+import com.chen.core.nio.file.Files;
+import com.chen.core.security.MessageDigest;
 import com.chen.core.bencode.Integer;
 import com.chen.core.bencode.*;
 

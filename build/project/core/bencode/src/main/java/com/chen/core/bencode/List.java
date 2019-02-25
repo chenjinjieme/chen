@@ -1,7 +1,7 @@
 package com.chen.core.bencode;
 
-import com.chen.core.base.nio.ByteBuffer;
-import com.chen.core.base.util.WrappedList;
+import com.chen.core.nio.ByteBuffer;
+import com.chen.core.util.WrappedList;
 
 import java.util.ArrayList;
 

@@ -1,6 +1,6 @@
 package com.chen.core.bencode;
 
-import com.chen.core.base.nio.ByteBuffer;
+import com.chen.core.nio.ByteBuffer;
 
 public interface Value {
     static Value parse(ByteBuffer buffer) {

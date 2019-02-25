@@ -1,7 +1,7 @@
 package com.chen.core.bencode;
 
-import com.chen.core.base.nio.ByteBuffer;
-import com.chen.core.base.util.WrappedMap;
+import com.chen.core.nio.ByteBuffer;
+import com.chen.core.util.WrappedMap;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

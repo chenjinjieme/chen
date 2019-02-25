@@ -1,7 +1,7 @@
 package com.chen.test.reinforce;
 
-import com.chen.core.base.nio.file.Files;
-import com.chen.core.base.security.MessageDigest;
+import com.chen.core.nio.file.Files;
+import com.chen.core.security.MessageDigest;
 import com.chen.file.torrent.Torrent;
 
 import java.io.IOException;

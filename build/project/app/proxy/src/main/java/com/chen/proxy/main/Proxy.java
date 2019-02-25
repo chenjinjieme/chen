@@ -1,6 +1,6 @@
 package com.chen.proxy.main;
 
-import com.chen.core.base.util.concurrent.CachedThreadPool;
+import com.chen.core.util.concurrent.CachedThreadPool;
 import com.chen.proxy.nio.channels.ProxyChannel;
 import com.chen.proxy.nio.channels.RequestChannel;
 

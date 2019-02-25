@@ -1,7 +1,7 @@
 package com.chen.file.picture;
 
-import com.chen.core.base.util.zip.CRC;
-import com.chen.core.base.util.zip.ZlibUtil;
+import com.chen.core.util.zip.CRC;
+import com.chen.core.util.zip.ZlibUtil;
 
 import java.io.*;
 import java.util.ArrayList;
