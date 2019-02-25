@@ -11,18 +11,18 @@ public class ByteString implements Value {
     }
 
     public ByteString(String s) {
-        sequence = new ByteSequence(s.getBytes());
+        this(new ByteSequence(s.getBytes()));
     }
 
     private ByteString(ByteBuffer buffer) {
-        int length = 0;
-        for (int b = buffer.get(); b != ':'; b = buffer.get()) length = length * 10 + b - '0';
+        var length = 0;
+        for (var b = buffer.get(); b != ':'; b = buffer.get()) length = length * 10 + b - '0';
         sequence = buffer.toByteSequence(buffer.position(), length);
         buffer.position(buffer.position() + length);
     }
 
     public int length() {
-        int length = sequence.length();
+        var length = sequence.length();
         return java.lang.Integer.toString(length).length() + length + 1;
     }
 

@@ -2,19 +2,27 @@ package com.chen.file.torrent;
 
 import com.chen.core.base.math.HexUtil;
 import com.chen.core.base.nio.ByteBuffer;
+import com.chen.core.base.nio.file.Files;
 import com.chen.core.base.security.MessageDigest;
 import com.chen.core.bencode.Integer;
 import com.chen.core.bencode.*;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Map;
 
-import static java.nio.ByteBuffer.wrap;
-
 public class Torrent extends Dictionary {
-    public static final ByteString INFO = new ByteString("info"), CREATION_DATE = new ByteString("creation date"), FILES = new ByteString("files"), LENGTH = new ByteString("length"), PATH = new ByteString("path"), NAME = new ByteString("name"), PIECE_LENGTH = new ByteString("piece length"), PIECES = new ByteString("pieces");
+    public static final ByteString INFO = new ByteString("info");
+    public static final ByteString CREATION_DATE = new ByteString("creation date");
+    public static final ByteString FILES = new ByteString("files");
+    public static final ByteString LENGTH = new ByteString("length");
+    public static final ByteString PATH = new ByteString("path");
+    public static final ByteString NAME = new ByteString("name");
+    public static final ByteString PIECE_LENGTH = new ByteString("piece length");
+    public static final ByteString PIECES = new ByteString("pieces");
 
     private Torrent(ByteBuffer buffer) {
         super(Dictionary.parse(buffer));
@@ -23,6 +31,20 @@ public class Torrent extends Dictionary {
     public Info info() {
         var info = ((Dictionary) get(INFO));
         return info instanceof Info ? (Info) info : new Info(info);
+    }
+
+    public Torrent info(Info info) {
+        put(INFO, info);
+        return this;
+    }
+
+    public Integer creationDate() {
+        return (Integer) get(CREATION_DATE);
+    }
+
+    public Torrent creationDate(Integer integer) {
+        put(CREATION_DATE, integer);
+        return this;
     }
 
     public String hash() throws NoSuchAlgorithmException {
@@ -37,36 +59,30 @@ public class Torrent extends Dictionary {
     }
 
     public static Torrent parse(String path) throws IOException {
-        return parse(new File(path));
+        return parse(Path.of(path));
     }
 
-    public static Torrent parse(File file) throws IOException {
-        try (var channel = new FileInputStream(file).getChannel()) {
-            var buffer = ByteBuffer.allocate(((int) channel.size()));
-            channel.read(wrap(buffer.array()));
-            return parse(buffer);
-        }
+    public static Torrent parse(Path path) throws IOException {
+        return parse(ByteBuffer.wrap(Files.readAllBytes(path)));
     }
 
     public void write(String path) throws IOException {
-        write(new File(path));
+        write(Path.of(path));
     }
 
-    public void write(File file) throws IOException {
-        try (var channel = new FileOutputStream(file).getChannel()) {
-            var buffer = ByteBuffer.allocate(length());
-            write(buffer);
-            channel.write(wrap(buffer.array()));
-        }
+    public void write(Path path) throws IOException {
+        var buffer = ByteBuffer.allocate(length());
+        write(buffer);
+        Files.write(path, buffer.array());
     }
 
-    public void build(File path) throws IOException {
+    public void build(Path path) throws IOException {
         var info = info();
-        var base = new File(path, info.name());
+        var base = path.resolve(info.name());
         for (var file : info.files()) {
-            var name = new File(base, file.path());
-            name.getParentFile().mkdirs();
-            new RandomAccessFile(name, "rw").setLength(file.fileLength());
+            var name = base.resolve(file.path());
+            Files.createDirectories(name.getParent());
+            new RandomAccessFile(name.toFile(), "rw").setLength(file.fileLength());
         }
     }
 
@@ -94,10 +110,10 @@ public class Torrent extends Dictionary {
                 super(map);
             }
 
-            public String path() {
-                var builder = new StringBuilder();
-                for (var path : ((List) get(PATH))) builder.append('/').append(path);
-                return builder.toString();
+            public Path path() {
+                var path = Path.of("");
+                for (var value : ((List) get(PATH))) path = path.resolve(value.toString());
+                return path;
             }
 
             public long fileLength() {

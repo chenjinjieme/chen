@@ -7,7 +7,7 @@ public class Integer implements Value {
 
     private Integer(ByteBuffer buffer) {
         if (buffer.get() != 'i') throw new ParseException("not an integer");
-        for (int b = buffer.get(); b != 'e'; b = buffer.get()) value = value * 10 + b - '0';
+        for (var b = buffer.get(); b != 'e'; b = buffer.get()) value = value * 10 + b - '0';
     }
 
     public long value() {
@@ -15,7 +15,7 @@ public class Integer implements Value {
     }
 
     public int length() {
-        return toString().length() + 2;
+        return Long.toString(value).length() + 2;
     }
 
     public static Integer parse(ByteBuffer buffer) {
@@ -23,7 +23,7 @@ public class Integer implements Value {
     }
 
     public void write(ByteBuffer buffer) {
-        buffer.put((byte) 'i').put(((Long) value).toString().getBytes()).put((byte) 'e');
+        buffer.put((byte) 'i').put(Long.toString(value).getBytes()).put((byte) 'e');
     }
 
     public boolean equals(Object obj) {

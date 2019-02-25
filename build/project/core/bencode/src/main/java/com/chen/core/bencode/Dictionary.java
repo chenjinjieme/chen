@@ -19,8 +19,8 @@ public class Dictionary extends WrappedMap<ByteString, Value> implements Value {
     }
 
     public int length() {
-        int length = 2;
-        for (Entry<ByteString, Value> entry : this.entrySet()) length += entry.getKey().length() + entry.getValue().length();
+        var length = 2;
+        for (var entry : this.entrySet()) length += entry.getKey().length() + entry.getValue().length();
         return length;
     }
 
@@ -30,7 +30,7 @@ public class Dictionary extends WrappedMap<ByteString, Value> implements Value {
 
     public void write(ByteBuffer buffer) {
         buffer.put((byte) 'd');
-        for (Entry<ByteString, Value> entry : entrySet()) {
+        for (var entry : entrySet()) {
             entry.getKey().write(buffer);
             entry.getValue().write(buffer);
         }

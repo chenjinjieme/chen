@@ -1,10 +1,9 @@
 package com.chen.core.base.security;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Path;
 import java.security.DigestException;
 import java.security.NoSuchAlgorithmException;
 
@@ -55,9 +54,9 @@ public class MessageDigest {
         return messageDigest.digest(input);
     }
 
-    public byte[] digest(File file) throws IOException {
-        try (FileChannel channel = new FileInputStream(file).getChannel()) {
-            ByteBuffer buffer = ByteBuffer.allocate(1024);
+    public byte[] digest(Path path) throws IOException {
+        try (var channel = FileChannel.open(path)) {
+            var buffer = ByteBuffer.allocate(1024);
             for (long l = channel.size(), read; l > 0 && (read = channel.read(buffer.clear())) > 0; l -= read) messageDigest.update(buffer);
             return messageDigest.digest();
         }

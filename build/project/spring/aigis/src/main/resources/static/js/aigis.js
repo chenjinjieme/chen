@@ -1,7 +1,9 @@
 const t = $(".top"), character = $(".character"), png = $(".png"), img = $(".img"),
     host = "http://assets.millennium-war.net/",
     characterTemp = '<div class="inline-block">\n<input name="character" type="radio" value="$name$">\n<span>$name$</span>\n</div>\n',
-    pngTemp = '<div class="inline-block">\n<input name="png" type="radio" value="$url$" id="$name$">\n<span>$name$$count$</span>\n</div>\n';
+    characterTempU = '<div class="inline-block">\n<input name="character" type="radio" value="$name$">\n<span><u>$name$</u></span>\n</div>\n',
+    pngTemp = '<div class="inline-block">\n<input name="png" type="radio" value="$url$" id="$name$">\n<span>$name$</span>\n</div>\n',
+    pngTempU = '<div class="inline-block">\n<input name="png" type="radio" value="$url$" id="$name$">\n<span><u>$name$</u></span>\n</div>\n';
 let pathname = decodeURIComponent(location.pathname);
 String.prototype.temp = function (obj) {
     return this.replace(/\$\w+\$/gi, function (matchs) {
@@ -31,7 +33,7 @@ $(function () {
             }, function (result) {
                 let htmlList = "";
                 if (result.message === "success") result.data.forEach(function (o) {
-                    htmlList += characterTemp.temp(o);
+                    if (o.own === 1) htmlList += characterTempU.temp(o); else htmlList += characterTemp.temp(o);
                 });
                 character.html(htmlList).find("input").change(function () {
                     u();
@@ -53,8 +55,7 @@ $(function () {
                     $.get("/aigis/png", {character: $("[name=character]:checked").val()}, function (result) {
                         let htmlList = "";
                         result.data.forEach(function (o) {
-                            if (o.count === null) o.count = ""; else o.count = "(" + o.count + ")";
-                            htmlList += pngTemp.temp(o);
+                            if (o.count === null) htmlList += pngTemp.temp(o); else htmlList += pngTempU.temp(o);
                         });
                         png.html(htmlList).find("input").change(function () {
                             p();
@@ -93,7 +94,7 @@ function c() {
     }, function (result) {
         let htmlList = "";
         if (result.message === "success") result.data.forEach(function (o) {
-            htmlList += characterTemp.temp(o);
+            if (o.own === 1) htmlList += characterTempU.temp(o); else htmlList += characterTemp.temp(o);
         });
         character.html(htmlList).find("input").change(function () {
             u();
@@ -112,8 +113,7 @@ function u() {
     } else $.get("/aigis/png", {character: character}, function (result) {
         let htmlList = "";
         result.data.forEach(function (o) {
-            if (o.count === null) o.count = ""; else o.count = "(" + o.count + ")";
-            htmlList += pngTemp.temp(o);
+            if (o.count === null) htmlList += pngTemp.temp(o); else htmlList += pngTempU.temp(o);
         });
         png.html(htmlList).find("input").change(function () {
             p();
