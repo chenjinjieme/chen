@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
-import java.security.DigestException;
 import java.security.NoSuchAlgorithmException;
 
 public class MessageDigest {
@@ -14,16 +13,28 @@ public class MessageDigest {
         this.messageDigest = messageDigest;
     }
 
-    public static MessageDigest md5() throws NoSuchAlgorithmException {
-        return new MessageDigest(java.security.MessageDigest.getInstance("MD5"));
+    public static MessageDigest md5() {
+        try {
+            return new MessageDigest(java.security.MessageDigest.getInstance("MD5"));
+        } catch (NoSuchAlgorithmException e) {
+            throw new MessageDigestException(e);
+        }
     }
 
-    public static MessageDigest sha1() throws NoSuchAlgorithmException {
-        return new MessageDigest(java.security.MessageDigest.getInstance("SHA-1"));
+    public static MessageDigest sha1() {
+        try {
+            return new MessageDigest(java.security.MessageDigest.getInstance("SHA-1"));
+        } catch (NoSuchAlgorithmException e) {
+            throw new MessageDigestException(e);
+        }
     }
 
-    public static MessageDigest sha256() throws NoSuchAlgorithmException {
-        return new MessageDigest(java.security.MessageDigest.getInstance("SHA-256"));
+    public static MessageDigest sha256() {
+        try {
+            return new MessageDigest(java.security.MessageDigest.getInstance("SHA-256"));
+        } catch (NoSuchAlgorithmException e) {
+            throw new MessageDigestException(e);
+        }
     }
 
     public void update(byte input) {
@@ -46,8 +57,9 @@ public class MessageDigest {
         return messageDigest.digest();
     }
 
-    public int digest(byte[] buf, int offset, int len) throws DigestException {
-        return messageDigest.digest(buf, offset, len);
+    public byte[] digest(byte[] input, int offset, int len) {
+        messageDigest.update(input, offset, len);
+        return messageDigest.digest();
     }
 
     public byte[] digest(byte[] input) {

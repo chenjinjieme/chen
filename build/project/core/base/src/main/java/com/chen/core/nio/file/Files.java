@@ -4,10 +4,7 @@ import com.chen.core.util.function.Consumer;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.file.CopyOption;
-import java.nio.file.LinkOption;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.nio.file.attribute.FileAttribute;
 import java.util.Iterator;
 import java.util.stream.Stream;
@@ -31,6 +28,18 @@ public class Files {
         return java.nio.file.Files.move(source, target, options);
     }
 
+    public static boolean isDirectory(Path path, LinkOption... options) {
+        return java.nio.file.Files.isDirectory(path, options);
+    }
+
+    public static long size(Path path) throws IOException {
+        return java.nio.file.Files.size(path);
+    }
+
+    public static boolean exists(Path path, LinkOption... options) {
+        return java.nio.file.Files.exists(path, options);
+    }
+
     public static byte[] readAllBytes(Path path) throws IOException {
         return java.nio.file.Files.readAllBytes(path);
     }
@@ -39,16 +48,22 @@ public class Files {
         return java.nio.file.Files.write(path, bytes, options);
     }
 
-    public static boolean isDirectory(Path path, LinkOption... options) {
-        return java.nio.file.Files.isDirectory(path, options);
-    }
-
     public static Stream<Path> list(Path dir) throws IOException {
         return java.nio.file.Files.list(dir);
     }
 
     public static void list(Path path, Consumer<Path, IOException> consumer) throws IOException {
         try (var list = list(path)) {
+            for (Iterator<Path> iterator = list.iterator(); iterator.hasNext(); ) consumer.accept(iterator.next());
+        }
+    }
+
+    public static Stream<Path> walk(Path start, FileVisitOption... options) throws IOException {
+        return java.nio.file.Files.walk(start, options);
+    }
+
+    public static void walk(Path path, Consumer<Path, IOException> consumer, FileVisitOption... options) throws IOException {
+        try (var list = walk(path, options)) {
             for (Iterator<Path> iterator = list.iterator(); iterator.hasNext(); ) consumer.accept(iterator.next());
         }
     }

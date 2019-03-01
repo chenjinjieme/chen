@@ -6,7 +6,6 @@ import com.chen.file.torrent.Torrent;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 public class ReinForce {
@@ -22,7 +21,7 @@ public class ReinForce {
         base = path.resolve("base.torrent");
     }
 
-    public void create() throws IOException, NoSuchAlgorithmException {
+    public void create() throws IOException {
         var torrent = Torrent.parse(base);
         var md5 = MessageDigest.md5();
         Files.list(bt, path -> {
@@ -51,11 +50,5 @@ public class ReinForce {
     private String getName(String file) {
         var index = file.indexOf(".");
         return index > 0 ? file.substring(0, index) : file;
-    }
-
-    public static class ReinForceException extends RuntimeException {
-        private ReinForceException(String message) {
-            super(message);
-        }
     }
 }

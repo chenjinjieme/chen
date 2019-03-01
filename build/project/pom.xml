@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.chen</groupId>
         <artifactId>build</artifactId>
-        <version>0.5.0</version>
+        <version>0.5.1</version>
     </parent>
     <artifactId>project</artifactId>
     <packaging>pom</packaging>
@@ -15,7 +15,7 @@
         <org.apache.httpcomponents.httpclient>4.5.7</org.apache.httpcomponents.httpclient>
         <org.junit.jupiter.junit-jupiter-api>5.4.0</org.junit.jupiter.junit-jupiter-api>
         <org.projectlombok.lombok>1.18.6</org.projectlombok.lombok>
-        <org.yaml.snakeyaml>1.23</org.yaml.snakeyaml>
+        <org.yaml.snakeyaml>1.24</org.yaml.snakeyaml>
     </properties>
     <modules>
         <module>core</module>

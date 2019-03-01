@@ -1,0 +1,126 @@
+package com.chen.test.reinforce;
+
+import com.chen.core.nio.file.Files;
+import com.chen.core.security.MessageDigest;
+import com.chen.file.torrent.File;
+import com.chen.file.torrent.Torrent;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.TreeSet;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+public class TorrentCheck {
+    private Torrent torrent;
+
+    public TorrentCheck(Torrent torrent) {
+        this.torrent = torrent;
+    }
+
+    public TorrentCheck pre(Path path) throws IOException {
+        var paths = new LinkedHashSet<Path>();
+        var files = new TreeSet<Path>();
+        var info = torrent.info();
+        var name = info.name();
+        var base = path.resolve(name);
+        for (var file : info.files()) paths.add(base.resolve(file.path()));
+        Files.walk(base, file -> {
+            if (!Files.isDirectory(file))
+                if (paths.contains(file)) paths.remove(file);
+                else files.add(file);
+        });
+        System.out.println(name);
+        System.out.println("----------------------------------------------------------------------------------------------------");
+        System.out.println("-");
+        for (var file : paths) System.out.println(file);
+        System.out.println("----------------------------------------------------------------------------------------------------");
+        System.out.println("+");
+        for (var file : files) System.out.println(file);
+        System.out.println("----------------------------------------------------------------------------------------------------");
+        return this;
+    }
+
+    public TorrentCheck build(Path path) throws IOException {
+        var info = torrent.info();
+        var base = path.resolve(info.name());
+        var create = new ArrayList<File>();
+        var reset = new ArrayList<File>();
+        for (var file : info.files()) {
+            var name = base.resolve(file.path());
+            Files.createDirectories(name.getParent());
+            if (!Files.exists(name)) create.add(file);
+            else if (Files.size(name) != file.length()) reset.add(file);
+            else continue;
+            Files.setLength(name, file.length());
+        }
+        System.out.println("create");
+        for (var file : create) System.out.println(file.path());
+        System.out.println("----------------------------------------------------------------------------------------------------");
+        System.out.println("reset");
+        for (var file : reset) System.out.println(file.path());
+        System.out.println("----------------------------------------------------------------------------------------------------");
+        return this;
+    }
+
+    public TorrentCheck check(Path path, int nThreads) throws ExecutionException, InterruptedException {
+        var info = torrent.info();
+        var pieces = info.pieces();
+        var pieceLength = info.pieceLength();
+        var base = path.resolve(info.name());
+        var size = pieces.size();
+        var count = new AtomicInteger();
+        var checked = new AtomicInteger();
+        var scheduledFutures = new ScheduledFuture<?>[1];
+        scheduledFutures[0] = Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
+            var i = count.get();
+            var j = checked.get();
+            System.out.printf("%s/%s/%s %.2f%%/%.2f%%%n", j, i, size, j * 100d / size, i * 100d / size);
+            if (i == size) scheduledFutures[0].cancel(true);
+        }, 0, 1, SECONDS);
+        var fixedThreadPool = Executors.newFixedThreadPool(nThreads);
+        var futures = new ArrayList<Future<Object>>(size);
+        var bufferThreadLocal = ThreadLocal.withInitial(() -> ByteBuffer.allocate(pieceLength));
+        var messageDigestThreadLocal = ThreadLocal.withInitial(MessageDigest::sha1);
+        for (var piece : pieces)
+            futures.add(fixedThreadPool.submit(() -> {
+                var offset = piece.offset();
+                var read = 0;
+                var buffer = bufferThreadLocal.get().clear();
+                for (var file : piece.files()) {
+                    try (var channel = FileChannel.open(base.resolve(file.path()))) {
+                        read += channel.position(offset).read(buffer);
+                    }
+                    offset = 0;
+                }
+                var digest = messageDigestThreadLocal.get().digest(buffer.array(), 0, read);
+                var sequence = piece.sequence();
+                if (Arrays.equals(digest, 0, digest.length, sequence.bytes(), sequence.offset(), sequence.offset() + sequence.length())) {
+                    piece.checked(true);
+                    checked.getAndIncrement();
+                }
+                count.getAndIncrement();
+                return null;
+            }));
+        for (var future : futures) future.get();
+        try {
+            scheduledFutures[0].get();
+        } catch (CancellationException ignored) {
+        }
+        System.out.println("----------------------------------------------------------------------------------------------------");
+        for (var piece : pieces)
+            if (!piece.checked()) {
+                System.out.println(piece.index());
+                for (var file : piece.files()) System.out.println(file.path());
+                System.out.println("----------------------------------------------------------------------------------------------------");
+            }
+        return this;
+    }
+}

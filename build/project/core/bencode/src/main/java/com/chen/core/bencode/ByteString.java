@@ -21,6 +21,10 @@ public class ByteString implements Value {
         buffer.position(buffer.position() + length);
     }
 
+    public ByteSequence sequence() {
+        return sequence;
+    }
+
     public int length() {
         var length = sequence.length();
         return java.lang.Integer.toString(length).length() + length + 1;
