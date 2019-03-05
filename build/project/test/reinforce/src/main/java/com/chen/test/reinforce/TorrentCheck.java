@@ -2,6 +2,7 @@ package com.chen.test.reinforce;
 
 import com.chen.core.nio.file.Files;
 import com.chen.core.security.MessageDigest;
+import com.chen.core.util.function.Consumer3;
 import com.chen.file.torrent.File;
 import com.chen.file.torrent.Torrent;
 
@@ -31,20 +32,46 @@ public class TorrentCheck {
         var info = torrent.info();
         var name = info.name();
         var base = path.resolve(name);
+        var torrent = new AtomicInteger();
+        var ass = new AtomicInteger();
         for (var file : info.files()) paths.add(base.resolve(file.path()));
+        var bak = new LinkedHashSet<Path>(paths);
         Files.walk(base, file -> {
             if (!Files.isDirectory(file))
                 if (paths.contains(file)) paths.remove(file);
-                else files.add(file);
+                else {
+                    var fileName = file.getFileName().toString();
+                    var index = fileName.lastIndexOf('.');
+                    var extension = fileName.substring(index + 1);
+                    if (extension.equals("torrent")) {
+                        if (fileName.substring(0, index).equals(name)) {
+                            torrent.getAndIncrement();
+                            return;
+                        }
+                    } else if (extension.equals("ass")) {
+                        if (bak.contains(file.resolveSibling(fileName.substring(0, index) + ".mkv"))) {
+                            ass.getAndIncrement();
+                            return;
+                        }
+                    }
+                    files.add(file);
+                }
         });
-        System.out.println(name);
-        System.out.println("----------------------------------------------------------------------------------------------------");
-        System.out.println("-");
-        for (var file : paths) System.out.println(file);
-        System.out.println("----------------------------------------------------------------------------------------------------");
-        System.out.println("+");
-        for (var file : files) System.out.println(file);
-        System.out.println("----------------------------------------------------------------------------------------------------");
+        synchronized (TorrentCheck.class) {
+            System.out.println();
+            System.out.println(name);
+            System.out.println();
+            System.out.println("----------------------------------------------------------------------------------------------------");
+            System.out.println("-");
+            for (var file : paths) System.out.println(file);
+            System.out.println("----------------------------------------------------------------------------------------------------");
+            System.out.println("torrent " + torrent.get());
+            System.out.println("ass " + ass.get());
+            System.out.println("----------------------------------------------------------------------------------------------------");
+            System.out.println("+");
+            for (var file : files) System.out.println(file);
+            System.out.println("----------------------------------------------------------------------------------------------------");
+        }
         return this;
     }
 
@@ -61,12 +88,14 @@ public class TorrentCheck {
             else continue;
             Files.setLength(name, file.length());
         }
-        System.out.println("create");
-        for (var file : create) System.out.println(file.path());
-        System.out.println("----------------------------------------------------------------------------------------------------");
-        System.out.println("reset");
-        for (var file : reset) System.out.println(file.path());
-        System.out.println("----------------------------------------------------------------------------------------------------");
+        synchronized (TorrentCheck.class) {
+            System.out.println("create");
+            for (var file : create) System.out.println(file.path());
+            System.out.println("----------------------------------------------------------------------------------------------------");
+            System.out.println("reset");
+            for (var file : reset) System.out.println(file.path());
+            System.out.println("----------------------------------------------------------------------------------------------------");
+        }
         return this;
     }
 
@@ -122,5 +151,23 @@ public class TorrentCheck {
                 System.out.println("----------------------------------------------------------------------------------------------------");
             }
         return this;
+    }
+
+    public static void preAll(Path path) throws IOException, ExecutionException, InterruptedException {
+        var pool = Executors.newCachedThreadPool();
+        var futures = new ArrayList<Future<Object>>();
+        Files.walk(path, file -> {
+            futures.add(pool.submit(() -> {
+                if (file.getFileName().toString().endsWith(".torrent")) new TorrentCheck(Torrent.parse(file)).pre(file.getParent().getParent());
+                return null;
+            }));
+        });
+        for (var future : futures) future.get();
+    }
+
+    public static void checkAll(Path path, int nThreads) throws IOException, ExecutionException, InterruptedException {
+        Files.walk(path, (Consumer3<Path, IOException, ExecutionException, InterruptedException>) file -> {
+            if (file.getFileName().toString().endsWith(".torrent")) new TorrentCheck(Torrent.parse(file)).check(file.getParent().getParent(), nThreads);
+        });
     }
 }

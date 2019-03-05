@@ -1,6 +1,6 @@
 package com.chen.core.nio.file;
 
-import com.chen.core.util.function.Consumer;
+import com.chen.core.util.function.Consumer3;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -52,7 +52,7 @@ public class Files {
         return java.nio.file.Files.list(dir);
     }
 
-    public static void list(Path path, Consumer<Path, IOException> consumer) throws IOException {
+    public static <E extends Throwable, F extends Throwable, G extends Throwable> void list(Path path, Consumer3<Path, E, F, G> consumer) throws IOException, E, F, G {
         try (var list = list(path)) {
             for (Iterator<Path> iterator = list.iterator(); iterator.hasNext(); ) consumer.accept(iterator.next());
         }
@@ -62,7 +62,7 @@ public class Files {
         return java.nio.file.Files.walk(start, options);
     }
 
-    public static void walk(Path path, Consumer<Path, IOException> consumer, FileVisitOption... options) throws IOException {
+    public static <E extends Throwable, F extends Throwable, G extends Throwable> void walk(Path path, Consumer3<Path, E, F, G> consumer, FileVisitOption... options) throws IOException, E, F, G {
         try (var list = walk(path, options)) {
             for (Iterator<Path> iterator = list.iterator(); iterator.hasNext(); ) consumer.accept(iterator.next());
         }

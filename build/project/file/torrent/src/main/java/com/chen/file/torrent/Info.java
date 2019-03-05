@@ -20,13 +20,18 @@ public class Info extends Dictionary {
         super(dictionary);
     }
 
+    public boolean multiple() {
+        return get(FILES) != null;
+    }
+
     public String name() {
-        return get(NAME).toString();
+        var name = get(NAME).toString();
+        return multiple() ? name : name.substring(0, name.lastIndexOf('.'));
     }
 
     public java.util.List<File> files() {
         var files = ((List) get(FILES));
-        if (files == null) return java.util.List.of(new File(Map.of(LENGTH, get(LENGTH), PATH, new List(java.util.List.of()))));
+        if (files == null) return java.util.List.of(new File(Map.of(LENGTH, get(LENGTH), PATH, new List(java.util.List.of(get(NAME))))));
         else {
             var list = new ArrayList<File>(files.size());
             for (var file : files) list.add(new File((Dictionary) file));

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.chen</groupId>
     <artifactId>build</artifactId>
-    <version>0.5.1</version>
+    <version>0.5.2</version>
     <packaging>pom</packaging>
     <properties>
         <java.version>11</java.version>
@@ -15,7 +15,6 @@
         <compiler-arg/>
         <main-class/>
         <maven-clean-plugin>3.1.0</maven-clean-plugin>
-        <maven-enforcer-plugin>1.4.1</maven-enforcer-plugin>
         <maven-resources-plugin>3.1.0</maven-resources-plugin>
         <maven-compiler-plugin>3.8.0</maven-compiler-plugin>
         <maven-surefire-plugin>2.22.1</maven-surefire-plugin>
@@ -32,24 +31,6 @@
     </modules>
     <build>
         <plugins>
-            <plugin>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <version>${maven-enforcer-plugin}</version>
-                <configuration>
-                    <rules>
-                        <requireMavenVersion>
-                            <version>3.3.9</version>
-                        </requireMavenVersion>
-                    </rules>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>${maven-source-plugin}</version>
