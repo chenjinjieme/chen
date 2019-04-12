@@ -100,10 +100,17 @@ public class TorrentCheck {
     }
 
     public TorrentCheck check(Path path, int nThreads) throws ExecutionException, InterruptedException {
+        return check(path, Executors.newFixedThreadPool(nThreads));
+    }
+
+    public TorrentCheck check(Path path, ExecutorService executorService) throws ExecutionException, InterruptedException {
         var info = torrent.info();
         var pieces = info.pieces();
         var pieceLength = info.pieceLength();
-        var base = path.resolve(info.name());
+        var name = info.name();
+        System.out.println(name);
+        System.out.println("----------------------------------------------------------------------------------------------------");
+        var base = path.resolve(name);
         var size = pieces.size();
         var count = new AtomicInteger();
         var checked = new AtomicInteger();
@@ -114,12 +121,11 @@ public class TorrentCheck {
             System.out.printf("%s/%s/%s %.2f%%/%.2f%%%n", j, i, size, j * 100d / size, i * 100d / size);
             if (i == size) scheduledFutures[0].cancel(true);
         }, 0, 1, SECONDS);
-        var fixedThreadPool = Executors.newFixedThreadPool(nThreads);
         var futures = new ArrayList<Future<Object>>(size);
         var bufferThreadLocal = ThreadLocal.withInitial(() -> ByteBuffer.allocate(pieceLength));
         var messageDigestThreadLocal = ThreadLocal.withInitial(MessageDigest::sha1);
         for (var piece : pieces)
-            futures.add(fixedThreadPool.submit(() -> {
+            futures.add(executorService.submit(() -> {
                 var offset = piece.offset();
                 var read = 0;
                 var buffer = bufferThreadLocal.get().clear();
@@ -166,8 +172,9 @@ public class TorrentCheck {
     }
 
     public static void checkAll(Path path, int nThreads) throws IOException, ExecutionException, InterruptedException {
+        var fixedThreadPool = Executors.newFixedThreadPool(nThreads);
         Files.walk(path, (Consumer3<Path, IOException, ExecutionException, InterruptedException>) file -> {
-            if (file.getFileName().toString().endsWith(".torrent")) new TorrentCheck(Torrent.parse(file)).check(file.getParent().getParent(), nThreads);
+            if (file.getFileName().toString().endsWith(".torrent")) new TorrentCheck(Torrent.parse(file)).check(file.getParent().getParent(), fixedThreadPool);
         });
     }
 }

@@ -8,11 +8,10 @@
         <artifactId>project</artifactId>
         <version>0.6.0</version>
     </parent>
-    <groupId>com.chen.core</groupId>
-    <artifactId>core</artifactId>
+    <groupId>com.chen.api</groupId>
+    <artifactId>api</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>base</module>
-        <module>bencode</module>
+        <module>http-client</module>
     </modules>
 </project>

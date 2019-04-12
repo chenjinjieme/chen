@@ -3,6 +3,7 @@ package com.chen.core.net.ssl;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
+import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -19,7 +20,7 @@ public class Engine {
         (engine = context.createSSLEngine()).setUseClientMode(b);
     }
 
-    public SSLEngine beginHandshake(SocketChannel channel) throws IOException {
+    public Engine beginHandshake(SocketChannel channel) throws IOException {
         engine.beginHandshake();
         for (HandshakeStatus handshakeStatus = engine.getHandshakeStatus(); handshakeStatus != NOT_HANDSHAKING; )
             if (handshakeStatus == NEED_WRAP) {
@@ -38,6 +39,16 @@ public class Engine {
                         }
                 }
             }
-        return engine;
+        return this;
+    }
+
+    public ByteBuffer wrap(ByteBuffer buffer) throws SSLException {
+        engine.wrap(buffer, net.clear());
+        return net.flip();
+    }
+
+    public ByteBuffer unwrap(ByteBuffer buffer) throws SSLException {
+        engine.unwrap(buffer, app.clear());
+        return app.flip();
     }
 }

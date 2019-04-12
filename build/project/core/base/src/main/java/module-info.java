@@ -1,5 +1,6 @@
 module com.chen.core.base {
     exports com.chen.core.crypto;
+    exports com.chen.core.io;
     exports com.chen.core.lang;
     exports com.chen.core.math;
     exports com.chen.core.net;

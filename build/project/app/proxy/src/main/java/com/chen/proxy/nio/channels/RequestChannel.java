@@ -66,10 +66,10 @@ public class RequestChannel extends ProxyChannel {
     public RequestChannel setAddress() {
         send = !"CONNECT".equals(request.getMethod());
         URL url = request.getURL();
-        host = url.getHost();
+        host = url.host();
         if (host == null) url.update(request.getHeaders().get("Host"));
-        host = url.getHost();
-        port = url.getPort();
+        host = url.host();
+        port = url.port();
         return this;
     }
 }

@@ -36,13 +36,15 @@
         <div class="character">
             <div class="inline-block" th:each="c:${characters}">
                 <input name="character" type="radio" th:value="${c.name}" th:checked="${c.name}==${character}">
-                <span th:text="${c.name}"></span>
+                <span th:if="${c.own==1}"><u th:text="${c.name}"></u></span>
+                <span th:if="${c.own!=1}" th:text="${c.name}"></span>
             </div>
         </div>
         <div class="png">
             <div class="inline-block" th:each="p:${pngs}">
                 <input name="png" type="radio" th:value="${p.url}" th:id="${p.name}" th:checked="${p.name}==${png}">
-                <span th:text="${p.name+(p.count==null?'':'('+p.count+')')}"></span>
+                <span th:if="${p.count==null}" th:text="${p.name}"></span>
+                <span th:if="${p.count!=null}"><u th:text="${p.name}"></u></span>
             </div>
         </div>
     </div>

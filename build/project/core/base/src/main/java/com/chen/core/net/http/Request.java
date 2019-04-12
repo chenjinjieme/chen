@@ -66,6 +66,7 @@ public class Request {
         url = new URL(sequence.subSequence(x, y).toString());
         flag = 1;
         sequence = sequence.subSequence(l + 2);
+        System.out.println(new String(buffer.array(), 0, buffer.position()));
         return true;
     }
 

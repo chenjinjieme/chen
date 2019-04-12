@@ -8,6 +8,7 @@ import java.util.List;
 public class Character {
     private String id;
     private String character;
+    private String own;
     private List<Png> pngs;
 
     @Data
