@@ -9,8 +9,8 @@ import java.nio.channels.ByteChannel;
 
 public class SSLChannel extends WrappedByteChannel {
     private Engine engine;
-    private ByteBuffer net = ByteBuffer.allocateDirect(16921);
-    private ByteBuffer app = ByteBuffer.allocateDirect(16916);
+    private ByteBuffer net = ByteBuffer.allocate(16921);
+    private ByteBuffer app = ByteBuffer.allocate(16916);
 
     public SSLChannel(ByteChannel channel, Engine engine) {
         super(channel);
@@ -18,18 +18,17 @@ public class SSLChannel extends WrappedByteChannel {
     }
 
     public int read(ByteBuffer dst) throws IOException {
-        var read = dst.position();
+        var position = dst.position();
         if (app.position() > 0) {
-            ByteBuffers.fill(dst, app.flip());
+            ByteBuffers.put(dst, app.flip());
             app.compact();
-        }
-        for (; dst.hasRemaining() && (super.read(net) > 0 || net.position() > 0); ) {
+        } else if (super.read(net) > 0 || net.position() > 0) {
             var unwrap = engine.unwrap(net.flip());
             net.compact();
-            ByteBuffers.fill(dst, unwrap);
+            ByteBuffers.put(dst, unwrap);
             if (unwrap.hasRemaining()) app.put(unwrap);
         }
-        return dst.position() - read;
+        return dst.position() - position;
     }
 
     public int write(ByteBuffer src) throws IOException {

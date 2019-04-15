@@ -15,13 +15,13 @@ public class PNG {
     private List<Chunk> others;
 
     public PNG(File file) throws IOException {
-        try (DataInputStream inputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
+        try (var inputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
             if (!(inputStream.readLong() == HEAD && (IHDR = new Chunk(inputStream)).type.equals("IHDR")))
                 throw new RuntimeException("not a png file");
             IDATs = new ArrayList<>();
             others = new ArrayList<>();
             for (; ; ) {
-                Chunk chunk = new Chunk(inputStream);
+                var chunk = new Chunk(inputStream);
                 switch (chunk.type) {
                     case "IDAT":
                         IDATs.add(chunk);
@@ -40,8 +40,8 @@ public class PNG {
     }
 
     public byte[] getIDAT() {
-        ZlibUtil.Inflater inflater = ZlibUtil.inflater();
-        for (Chunk chunk : IDATs) inflater.add(chunk.data);
+        var inflater = ZlibUtil.inflater();
+        for (var chunk : IDATs) inflater.add(chunk.data);
         return inflater.getBytes();
     }
 
@@ -51,14 +51,14 @@ public class PNG {
     }
 
     public PNG setIDATSize(int size) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        for (Chunk chunk : IDATs) outputStream.write(chunk.data, 0, chunk.data.length);
-        byte[] bytes = outputStream.toByteArray();
-        int l = bytes.length;
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+        var outputStream = new ByteArrayOutputStream();
+        for (var chunk : IDATs) outputStream.write(chunk.data, 0, chunk.data.length);
+        var bytes = outputStream.toByteArray();
+        var l = bytes.length;
+        var inputStream = new ByteArrayInputStream(bytes);
         IDATs = new ArrayList<>();
         for (byte[] data; l > 0; ) {
-            int i = Integer.min(size, l);
+            var i = Math.min(size, l);
             l -= inputStream.read(data = new byte[i], 0, i);
             IDATs.add(new Chunk("IDAT", data));
         }
@@ -66,10 +66,10 @@ public class PNG {
     }
 
     public void write(OutputStream outputStream) throws IOException {
-        try (DataOutputStream dataOutputStream = new DataOutputStream(new BufferedOutputStream(outputStream))) {
+        try (var dataOutputStream = new DataOutputStream(new BufferedOutputStream(outputStream))) {
             dataOutputStream.writeLong(HEAD);
             IHDR.write(dataOutputStream);
-            for (Chunk chunk : IDATs) chunk.write(dataOutputStream);
+            for (var chunk : IDATs) chunk.write(dataOutputStream);
             Chunk.IEND.write(dataOutputStream);
         }
     }
@@ -87,8 +87,8 @@ public class PNG {
         }
 
         private Chunk(DataInputStream inputStream) throws IOException {
-            int length = inputStream.readInt();
-            byte[] bytes = new byte[4];
+            var length = inputStream.readInt();
+            var bytes = new byte[4];
             inputStream.read(bytes);
             type = new String(bytes);
             inputStream.read(data = new byte[length]);

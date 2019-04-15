@@ -117,7 +117,7 @@ public class ByteSequence {
     }
 
     public ByteSequence subSequence(int start) {
-        return start == 0 ? this : new ByteSequence(bytes, ix(start));
+        return subSequence(start, length);
     }
 
     public ByteSequence subSequence(int start, int end) {

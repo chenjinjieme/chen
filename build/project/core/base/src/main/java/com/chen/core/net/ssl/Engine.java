@@ -13,8 +13,8 @@ import static javax.net.ssl.SSLEngineResult.Status.OK;
 
 public class Engine {
     private SSLEngine engine;
-    private ByteBuffer net = ByteBuffer.allocateDirect(16921);
-    private ByteBuffer app = ByteBuffer.allocateDirect(16916);
+    private ByteBuffer net = ByteBuffer.allocate(16921);
+    private ByteBuffer app = ByteBuffer.allocate(16916);
 
     public Engine(SSLContext context, boolean b) {
         (engine = context.createSSLEngine()).setUseClientMode(b);
