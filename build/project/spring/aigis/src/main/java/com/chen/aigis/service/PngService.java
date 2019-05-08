@@ -1,7 +1,6 @@
 package com.chen.aigis.service;
 
 import com.chen.aigis.dao.PngDao;
-import com.chen.core.data.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +14,6 @@ public class PngService {
     private PngDao pngDao;
 
     public Map<String, Object> getByCharacter(String character) {
-        return putData(pngDao.getByCharacter(new Parameter("character", character)));
+        return putData(pngDao.getByCharacter(Map.of("character", character)));
     }
 }

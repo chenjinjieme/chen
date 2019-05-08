@@ -69,7 +69,7 @@ public class MessageDigest {
     public byte[] digest(Path path) throws IOException {
         try (var channel = FileChannel.open(path)) {
             var buffer = ByteBuffer.allocate(1024);
-            for (long l = channel.size(), read; l > 0 && (read = channel.read(buffer.clear())) > 0; l -= read) messageDigest.update(buffer);
+            for (long l = channel.size(), read; l > 0 && (read = channel.read(buffer.clear())) > 0; l -= read) messageDigest.update(buffer.flip());
             return messageDigest.digest();
         }
     }

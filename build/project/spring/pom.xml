@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.chen</groupId>
         <artifactId>project</artifactId>
-        <version>0.6.1</version>
+        <version>0.6.2</version>
     </parent>
     <groupId>com.chen.spring</groupId>
     <artifactId>spring</artifactId>
@@ -14,12 +14,14 @@
     <properties>
         <start-class/>
         <com.github.pagehelper.pagehelper-spring-boot-starter>1.2.10</com.github.pagehelper.pagehelper-spring-boot-starter>
-        <mysql.mysql-connector-java>8.0.15</mysql.mysql-connector-java>
-        <org.springframework.boot>2.1.2.RELEASE</org.springframework.boot>
+        <mysql.mysql-connector-java>8.0.16</mysql.mysql-connector-java>
+        <org.mybatis.spring.boot.mybatis-spring-boot-starter>2.0.1</org.mybatis.spring.boot.mybatis-spring-boot-starter>
+        <org.springframework.boot>2.1.4.RELEASE</org.springframework.boot>
     </properties>
     <modules>
-        <module>spring-base</module>
         <module>aigis</module>
+        <module>maho</module>
+        <module>spring-base</module>
     </modules>
     <dependencies>
         <dependency>
@@ -47,13 +49,28 @@
                 <version>${mysql.mysql-connector-java}</version>
             </dependency>
             <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>${org.mybatis.spring.boot.mybatis-spring-boot-starter}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-web</artifactId>
+                <artifactId>spring-boot-starter</artifactId>
+                <version>${org.springframework.boot}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-jdbc</artifactId>
                 <version>${org.springframework.boot}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-thymeleaf</artifactId>
+                <version>${org.springframework.boot}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-web</artifactId>
                 <version>${org.springframework.boot}</version>
             </dependency>
         </dependencies>

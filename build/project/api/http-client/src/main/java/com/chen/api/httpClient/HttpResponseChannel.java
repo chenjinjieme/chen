@@ -104,14 +104,8 @@ public class HttpResponseChannel extends BufferedReadableByteChannel {
     }
 
     public int read(ByteBuffer dst) throws IOException {
-        var read = contentLength > dst.remaining() ? super.read(dst) : super.read(dst, (int) contentLength);
-        contentLength -= read;
-        check();
-        return read;
-    }
-
-    public int read(ByteBuffer dst, int length) throws IOException {
-        var read = super.read(dst, (int) Math.min(contentLength, length));
+        if (contentLength < dst.remaining()) return read(dst, (int) contentLength);
+        var read = super.read(dst);
         contentLength -= read;
         check();
         return read;

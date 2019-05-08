@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.chen</groupId>
     <artifactId>build</artifactId>
-    <version>0.6.1</version>
+    <version>0.6.2</version>
     <packaging>pom</packaging>
     <properties>
         <java.version>11</java.version>
@@ -16,7 +16,7 @@
         <main-class/>
         <maven-clean-plugin>3.1.0</maven-clean-plugin>
         <maven-resources-plugin>3.1.0</maven-resources-plugin>
-        <maven-compiler-plugin>3.8.0</maven-compiler-plugin>
+        <maven-compiler-plugin>3.8.1</maven-compiler-plugin>
         <maven-surefire-plugin>2.22.1</maven-surefire-plugin>
         <maven-jar-plugin>3.1.1</maven-jar-plugin>
         <maven-source-plugin>3.0.1</maven-source-plugin>

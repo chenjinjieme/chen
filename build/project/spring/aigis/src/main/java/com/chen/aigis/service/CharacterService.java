@@ -1,7 +1,6 @@
 package com.chen.aigis.service;
 
 import com.chen.aigis.dao.CharacterDao;
-import com.chen.core.data.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,14 +15,14 @@ public class CharacterService {
     private CharacterDao characterDao;
 
     public Map<String, Object> get(String sex, String rare, String clazz) {
-        return putData(characterDao.get(new Parameter("sex", sex).add("rare", rare).add("class", clazz)));
+        return putData(characterDao.get(Map.of("sex", sex, "rare", rare, "class", clazz)));
     }
 
     public Map<String, Object> add(String id, String name, String sex, String rare, String clazz) {
-        return execute(characterDao.add(new Parameter("id", id).add("name", name).add("sex", sex).add("rare", rare).add("class", clazz)));
+        return execute(characterDao.add(Map.of("id", id, "name", name, "sex", sex, "rare", rare, "class", clazz)));
     }
 
     public Map<String, Object> delete(String id) {
-        return execute(characterDao.delete(new Parameter("id", id)));
+        return execute(characterDao.delete(Map.of("id", id)));
     }
 }

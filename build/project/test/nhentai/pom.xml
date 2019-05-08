@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.chen.test</groupId>
         <artifactId>test</artifactId>
-        <version>0.6.1</version>
+        <version>0.6.2</version>
     </parent>
     <artifactId>nhentai</artifactId>
     <dependencies>

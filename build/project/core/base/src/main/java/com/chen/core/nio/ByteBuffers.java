@@ -3,11 +3,15 @@ package com.chen.core.nio;
 import java.nio.ByteBuffer;
 
 public class ByteBuffers {
-    public static void put(ByteBuffer dst, ByteBuffer src) {
-        for (int i = 0, n = Math.min(src.remaining(), dst.remaining()); i < n; i++) dst.put(src.get());
+    public static int put(ByteBuffer dst, ByteBuffer src) {
+        var n = Math.min(src.remaining(), dst.remaining());
+        for (var i = 0; i < n; i++) dst.put(src.get());
+        return n;
     }
 
-    public static void put(ByteBuffer dst, ByteBuffer src, int length) {
-        for (int i = 0, n = Math.min(Math.min(src.remaining(), dst.remaining()), length); i < n; i++) dst.put(src.get());
+    public static int put(ByteBuffer dst, ByteBuffer src, int length) {
+        var n = Math.min(Math.min(src.remaining(), dst.remaining()), length);
+        for (var i = 0; i < n; i++) dst.put(src.get());
+        return n;
     }
 }

@@ -1,106 +1,113 @@
 package com.chen.file.picture;
 
-import com.chen.core.util.zip.CRC;
-import com.chen.core.util.zip.ZlibUtil;
-
-import java.io.*;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.zip.DataFormatException;
+import java.util.zip.Deflater;
+import java.util.zip.Inflater;
 
 public class PNG {
-    private static final long HEAD = 0x89504E470D0A1A0AL;
-    private Chunk IHDR;
-    private List<Chunk> IDATs;
-    private List<Chunk> others;
+    private static final long SIGNATURE = 0x89504E470D0A1A0AL;
+    private List<Chunk> chunks;
+    private IHDRChunk ihdr;
+    private IDATChunk idat;
+    private IENDChunk iend;
 
-    public PNG(File file) throws IOException {
-        try (var inputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(file)))) {
-            if (!(inputStream.readLong() == HEAD && (IHDR = new Chunk(inputStream)).type.equals("IHDR")))
-                throw new RuntimeException("not a png file");
-            IDATs = new ArrayList<>();
-            others = new ArrayList<>();
-            for (; ; ) {
-                var chunk = new Chunk(inputStream);
-                switch (chunk.type) {
-                    case "IDAT":
-                        IDATs.add(chunk);
-                        break;
-                    case "IEND":
-                        return;
-                    default:
-                        others.add(chunk);
-                }
+    private PNG(List<Chunk> chunks, IDATChunk idat) {
+        this.chunks = chunks;
+        ihdr = (IHDRChunk) chunks.get(0);
+        this.idat = idat;
+        iend = (IENDChunk) chunks.get(chunks.size() - 1);
+    }
+
+    public static PNG parse(Path path) throws IOException {
+        try (var channel = FileChannel.open(path)) {
+            var buffer = ByteBuffer.allocate((int) channel.size());
+            channel.read(buffer);
+            buffer.flip().getLong();
+            var chunks = new ArrayList<Chunk>();
+            var idat = (IDATChunk) null;
+            for (; buffer.hasRemaining(); ) {
+                var chunk = Chunk.parse(buffer);
+                if (chunk instanceof IDATChunk) idat = (IDATChunk) chunk;
+                chunks.add(chunk);
             }
+            return new PNG(chunks, idat);
         }
     }
 
-    public PNG(String path) throws IOException {
-        this(new File(path));
+    public int width() {
+        return ihdr.width;
     }
 
-    public byte[] getIDAT() {
-        var inflater = ZlibUtil.inflater();
-        for (var chunk : IDATs) inflater.add(chunk.data);
-        return inflater.getBytes();
+    public int height() {
+        return ihdr.height;
     }
 
-    public PNG redeflater() {
-        IDATs = Collections.singletonList(new Chunk("IDAT", ZlibUtil.deflater(getIDAT()).getBytes()));
+    public byte bitDepth() {
+        return ihdr.bitDepth;
+    }
+
+    public byte colorType() {
+        return ihdr.colorType;
+    }
+
+    public ByteBuffer data() throws DataFormatException {
+        var inflater = new Inflater();
+        var buffer = ByteBuffer.allocate(idat.data.length << 2);
+        inflater.setInput(idat.data);
+        inflater.inflate(buffer);
+        for (; !inflater.needsInput(); ) {
+            buffer = ByteBuffer.allocate(buffer.capacity() << 1).put(buffer.flip());
+            inflater.inflate(buffer);
+        }
+        return buffer.flip();
+    }
+
+    public PNG redeflater() throws DataFormatException {
+        var deflater = new Deflater();
+        var data = data();
+        var buffer = ByteBuffer.allocate(data.limit());
+        deflater.setInput(data);
+        deflater.deflate(buffer);
+        var length = buffer.position();
+        var bytes = new byte[length];
+        System.arraycopy(buffer.array(), 0, bytes, 0, length);
+        idat.data = bytes;
+        idat.lengths = List.of(length);
         return this;
     }
 
     public PNG setIDATSize(int size) {
-        var outputStream = new ByteArrayOutputStream();
-        for (var chunk : IDATs) outputStream.write(chunk.data, 0, chunk.data.length);
-        var bytes = outputStream.toByteArray();
-        var l = bytes.length;
-        var inputStream = new ByteArrayInputStream(bytes);
-        IDATs = new ArrayList<>();
-        for (byte[] data; l > 0; ) {
-            var i = Math.min(size, l);
-            l -= inputStream.read(data = new byte[i], 0, i);
-            IDATs.add(new Chunk("IDAT", data));
+        if (size == -1) idat.lengths = List.of(idat.data.length);
+        else {
+            var list = new ArrayList<Integer>();
+            var i = idat.data.length;
+            for (; i > size; i -= size) list.add(size);
+            if (i > 0) list.add(i);
+            idat.lengths = list;
         }
         return this;
     }
 
-    public void write(OutputStream outputStream) throws IOException {
-        try (var dataOutputStream = new DataOutputStream(new BufferedOutputStream(outputStream))) {
-            dataOutputStream.writeLong(HEAD);
-            IHDR.write(dataOutputStream);
-            for (var chunk : IDATs) chunk.write(dataOutputStream);
-            Chunk.IEND.write(dataOutputStream);
+    public void write(Path path) throws IOException {
+        try (var channel = FileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+            channel.write(ByteBuffer.allocate(8).putLong(SIGNATURE).flip());
+            ihdr.write(channel);
+            idat.write(channel);
+            iend.write(channel);
         }
     }
 
-    private static class Chunk {
-        private static final Chunk IEND = new Chunk("IEND", new byte[0]);
-        private String type;
-        private byte[] data;
-        private int crc;
-
-        private Chunk(String type, byte[] data) {
-            this.type = type;
-            this.data = data;
-            crc = new CRC(type).update(data).getValue();
-        }
-
-        private Chunk(DataInputStream inputStream) throws IOException {
-            var length = inputStream.readInt();
-            var bytes = new byte[4];
-            inputStream.read(bytes);
-            type = new String(bytes);
-            inputStream.read(data = new byte[length]);
-            if ((crc = inputStream.readInt()) != new CRC(type).update(data).getValue())
-                throw new RuntimeException();
-        }
-
-        private void write(DataOutputStream dataOutputStream) throws IOException {
-            dataOutputStream.writeInt(data.length);
-            dataOutputStream.write(type.getBytes());
-            dataOutputStream.write(data);
-            dataOutputStream.writeInt(crc);
+    public void writeAll(Path path) throws IOException {
+        try (var channel = FileChannel.open(path, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+            channel.write(ByteBuffer.allocate(8).putLong(SIGNATURE).flip());
+            for (var chunk : chunks) chunk.write(channel);
         }
     }
 }

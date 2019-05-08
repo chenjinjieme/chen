@@ -1,4 +1,4 @@
-package com.chen.core.data;
+package com.chen.spring.base.data;
 
 import java.util.*;
 
