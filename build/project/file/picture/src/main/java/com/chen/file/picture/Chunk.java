@@ -10,8 +10,16 @@ interface Chunk {
     int IEND = 0x49454e44;
 
     static Chunk parse(ByteBuffer buffer) {
-        var type = buffer.getInt(buffer.position() + 4);
-        return type == IHDR ? IHDRChunk.parse(buffer) : type == IDAT ? IDATChunk.parse(buffer) : type == IEND ? IENDChunk.parse(buffer) : RawChunk.parse(buffer);
+        switch (buffer.getInt(buffer.position() + 4)) {
+            case IHDR:
+                return IHDRChunk.parse(buffer);
+            case IDAT:
+                return IDATChunk.parse(buffer);
+            case IEND:
+                return IENDChunk.parse(buffer);
+            default:
+                return RawChunk.parse(buffer);
+        }
     }
 
     void write(ByteChannel channel) throws IOException;

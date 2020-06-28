@@ -6,53 +6,49 @@ import com.chen.core.bencode.Integer;
 import com.chen.core.bencode.List;
 
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class Info extends Dictionary {
+public class Info {
     public static final ByteString FILES = new ByteString("files");
     public static final ByteString LENGTH = new ByteString("length");
     public static final ByteString PATH = new ByteString("path");
     public static final ByteString NAME = new ByteString("name");
     public static final ByteString PIECE_LENGTH = new ByteString("piece length");
     public static final ByteString PIECES = new ByteString("pieces");
+    private Dictionary dictionary;
 
     Info(Dictionary dictionary) {
-        super(dictionary);
+        this.dictionary = dictionary;
     }
 
     public boolean multiple() {
-        return get(FILES) != null;
+        return dictionary.get(FILES) != null;
     }
 
     public String name() {
-        var name = get(NAME).toString();
-        return multiple() ? name : name.substring(0, name.lastIndexOf('.'));
+        return dictionary.get(NAME).toString();
     }
 
     public java.util.List<File> files() {
-        var files = ((List) get(FILES));
-        if (files == null) return java.util.List.of(new File(Map.of(LENGTH, get(LENGTH), PATH, new List(java.util.List.of(get(NAME))))));
-        else {
-            var list = new ArrayList<File>(files.size());
-            for (var file : files) list.add(new File((Dictionary) file));
-            return list;
-        }
+        return Optional.ofNullable((List) dictionary.get(FILES)).map(files -> files.stream().map(file -> (Dictionary) file).map(file -> new File(((Integer) file.get(LENGTH)), ((List) file.get(PATH))))).or(() -> Optional.of(Stream.of(new File((Integer) dictionary.get(LENGTH), List.of(dictionary.get(NAME)))))).get().collect(Collectors.toList());
     }
 
     public int pieceLength() {
-        return (int) ((Integer) get(PIECE_LENGTH)).value();
+        return (int) ((Integer) dictionary.get(PIECE_LENGTH)).value();
     }
 
     public java.util.List<Piece> pieces() {
-        var sequence = ((ByteString) get(PIECES)).sequence();
+        var buffer = ((ByteString) dictionary.get(PIECES)).buffer();
         var pieceLength = pieceLength();
-        var pieces = new ArrayList<Piece>(sequence.length() / pieceLength + 1);
+        var pieces = new ArrayList<Piece>(buffer.remaining() / pieceLength + 1);
         var files = files();
-        var n = 0;
+        var n = buffer.position();
         var offset = 0L;
         for (int i = 0, l = files.size(), index = 0; i < l; ) {
             var paths = new ArrayList<File>();
-            pieces.add(new Piece(index++, sequence.subSequence(n, n += 20), paths, offset));
+            pieces.add(new Piece(index++, buffer.duplicate().position(n).limit(n += 20), paths, offset));
             for (var j = pieceLength; j > 0 && i < l; ) {
                 var file = files.get(i);
                 var length = file.length() - offset;

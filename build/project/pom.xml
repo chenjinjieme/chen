@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.chen</groupId>
         <artifactId>build</artifactId>
-        <version>0.6.2</version>
+        <version>0.7.0</version>
     </parent>
     <artifactId>project</artifactId>
     <packaging>pom</packaging>
     <properties>
         <net.sourceforge.nekohtml.nekohtml>1.9.22</net.sourceforge.nekohtml.nekohtml>
-        <org.apache.httpcomponents.httpclient>4.5.8</org.apache.httpcomponents.httpclient>
-        <org.junit.jupiter.junit-jupiter-api>5.4.0</org.junit.jupiter.junit-jupiter-api>
-        <org.projectlombok.lombok>1.18.8</org.projectlombok.lombok>
-        <org.yaml.snakeyaml>1.24</org.yaml.snakeyaml>
+        <org.apache.httpcomponents.httpclient>4.5.12</org.apache.httpcomponents.httpclient>
+        <org.codelibs.nekohtml>2.1.0</org.codelibs.nekohtml>
+        <org.junit.jupiter.junit-jupiter-api>5.6.2</org.junit.jupiter.junit-jupiter-api>
+        <org.projectlombok.lombok>1.18.12</org.projectlombok.lombok>
+        <org.yaml.snakeyaml>1.26</org.yaml.snakeyaml>
     </properties>
     <modules>
         <module>api</module>
@@ -46,6 +45,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.chen.core</groupId>
+                <artifactId>hex</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.chen.file</groupId>
                 <artifactId>torrent</artifactId>
                 <version>${project.version}</version>
@@ -59,6 +63,11 @@
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
                 <version>${org.apache.httpcomponents.httpclient}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codelibs</groupId>
+                <artifactId>nekohtml</artifactId>
+                <version>${org.codelibs.nekohtml}</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>

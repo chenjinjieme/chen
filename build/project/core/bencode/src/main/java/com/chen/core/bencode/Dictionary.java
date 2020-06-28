@@ -1,39 +1,33 @@
 package com.chen.core.bencode;
 
-import com.chen.core.nio.ByteBuffer;
-import com.chen.core.util.WrappedMap;
-
+import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.stream.Stream;
 
-public class Dictionary extends WrappedMap<ByteString, Value> implements Value {
-    public Dictionary(Map<ByteString, Value> map) {
-        super(map);
-    }
-
-    private Dictionary(ByteBuffer buffer) {
-        super(new LinkedHashMap<>());
-        if (buffer.get() != 'd') throw new ParseException("not a dictionary");
-        for (int b = buffer.get(buffer.position()); b != 'e'; b = buffer.get(buffer.position())) put(ByteString.parse(buffer), Value.parse(buffer));
-        buffer.position(buffer.position() + 1);
-    }
-
-    public int length() {
-        var length = 2;
-        for (var entry : this.entrySet()) length += entry.getKey().length() + entry.getValue().length();
-        return length;
-    }
-
+public class Dictionary extends LinkedHashMap<ByteString, Value> implements Value {
     public static Dictionary parse(ByteBuffer buffer) {
-        return new Dictionary(buffer);
+        var dictionary = new Dictionary();
+        for (var b = buffer.position(buffer.position() + 1).get(buffer.position()); b != 'e'; b = buffer.get(buffer.position())) dictionary.put(ByteString.parse(buffer), Value.parse(buffer));
+        buffer.position(buffer.position() + 1);
+        return dictionary;
+    }
+
+    public static Dictionary of(Value... values) {
+        var dictionary = new Dictionary();
+        for (var i = 0; i < values.length; i++) dictionary.put((ByteString) values[i], values[++i]);
+        return dictionary;
+    }
+
+    public int bufferSize() {
+        return entrySet().stream().flatMap(entry -> Stream.of(entry.getKey(), entry.getValue())).mapToInt(Value::bufferSize).sum() + 2;
     }
 
     public void write(ByteBuffer buffer) {
         buffer.put((byte) 'd');
-        for (var entry : entrySet()) {
-            entry.getKey().write(buffer);
-            entry.getValue().write(buffer);
-        }
+        forEach((key, value) -> {
+            key.write(buffer);
+            value.write(buffer);
+        });
         buffer.put((byte) 'e');
     }
 }

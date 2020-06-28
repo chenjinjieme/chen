@@ -1,19 +1,19 @@
 package com.chen.test.reinforce;
 
 import com.chen.core.nio.file.Files;
-import com.chen.core.security.MessageDigest;
 import com.chen.file.torrent.Torrent;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.Optional;
+
+import static com.chen.file.torrent.Torrent.CREATION_DATE;
+import static com.chen.file.torrent.Torrent.INFO;
 
 public class ReinForce {
     private Path bt, n, base;
-
-    public ReinForce(String path) {
-        this(Path.of(path));
-    }
 
     public ReinForce(Path path) {
         bt = path.resolve("bt");
@@ -22,14 +22,33 @@ public class ReinForce {
     }
 
     public void create() throws IOException {
-        var torrent = Torrent.parse(base);
-        var md5 = MessageDigest.md5();
         Files.list(bt, path -> {
+            var torrent = Torrent.parse(base);
             var name = path.getFileName();
+            if (!name.toString().endsWith(".torrent")) return;
             var resolve = n.resolve(name);
             var parse = Torrent.parse(path);
-            torrent.info(parse.info()).creationDate(parse.creationDate()).write(resolve);
-            if (!Arrays.equals(md5.digest(path), md5.digest(resolve))) System.out.println(name);
+            var dest = torrent.dictionary();
+            var src = parse.dictionary();
+            Optional.ofNullable(src.get(INFO)).ifPresent(value -> dest.put(INFO, value));
+            Optional.ofNullable(src.get(CREATION_DATE)).ifPresent(value -> dest.put(CREATION_DATE, value));
+            torrent.write(resolve);
+            try (var channel1 = FileChannel.open(path); var channel2 = FileChannel.open(resolve)) {
+                var l = channel1.size();
+                if (channel2.size() != l) System.out.println(name);
+                else {
+                    var buffer1 = ByteBuffer.allocate(1024);
+                    var buffer2 = ByteBuffer.allocate(1024);
+                    for (; l > 0; ) {
+                        l -= channel1.read(buffer1.clear());
+                        channel2.read(buffer2.clear());
+                        if (!buffer1.flip().equals(buffer2.flip())) {
+                            System.out.println(name);
+                            break;
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -43,12 +62,12 @@ public class ReinForce {
     public void name() throws IOException {
         Files.list(bt, path -> {
             var file = path.getFileName().toString();
-            if (!getName(file).equals(getName((Torrent.parse(path).info().name())))) System.out.println(file);
+            if (!file.endsWith(".torrent")) return;
+            var name = Torrent.parse(path).info().name();
+            if (!file.replace(".torrent", "").equals(name)) {
+                System.out.println(file);
+                System.out.println(name);
+            }
         });
-    }
-
-    private String getName(String file) {
-        var index = file.indexOf(".");
-        return index > 0 ? file.substring(0, index) : file;
     }
 }

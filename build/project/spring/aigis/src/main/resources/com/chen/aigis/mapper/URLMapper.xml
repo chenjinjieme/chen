@@ -7,7 +7,7 @@
         FROM url
     </select>
     <insert id="add">
-        INSERT url (name, url)
+        INSERT INTO url(name, url)
         VALUES (#{name}, #{url})
     </insert>
     <update id="update">

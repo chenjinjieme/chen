@@ -74,17 +74,21 @@ public class URLService {
                         if (name.indexOf("card") == 4) {
                             execute(pngDao.add(parameter = new Parameter("character", name.substring(0, 3)).add("type", 0).add("index", name.charAt(9))));
                             png.add(parameter);
+                        } else if (name.indexOf("card") == 5) {
+                            execute(pngDao.add(parameter = new Parameter("character", name.substring(0, 4)).add("type", 0).add("index", name.charAt(10))));
+                            png.add(parameter);
                         } else if (name.indexOf("Allev") == 0) {
-                            execute(pngDao.add(parameter = new Parameter("character", name.substring(12, 15)).add("type", 1).add("index", name.charAt(16))));
+                            execute(pngDao.add(parameter = new Parameter("character", name.substring(11, 15)).add("type", 1).add("index", name.charAt(16))));
                             png.add(parameter);
                         } else if (name.indexOf("HarlemCG") == 0) {
-                            execute(pngDao.add(parameter = new Parameter("character", name.substring(9, 12)).add("type", 2).add("index", name.charAt(13))));
+                            if (name.charAt(12) == '_') execute(pngDao.add(parameter = new Parameter("character", name.substring(9, 12)).add("type", 2).add("index", name.charAt(13))));
+                            else execute(pngDao.add(parameter = new Parameter("character", name.substring(9, 13)).add("type", 2).add("index", name.charAt(14))));
                             png.add(parameter);
                         } else if (name.indexOf("R18ev") == 0) {
-                            execute(pngDao.add(parameter = new Parameter("character", name.substring(12, 15)).add("type", 3).add("index", name.charAt(16))));
+                            execute(pngDao.add(parameter = new Parameter("character", name.substring(11, 15)).add("type", 3).add("index", name.charAt(16))));
                             png.add(parameter);
                         } else if (name.indexOf("Promotion") == 0) {
-                            execute(pngDao.add(parameter = new Parameter("character", name.substring(10, 13)).add("type", 4).add("index", name.charAt(19))));
+                            execute(pngDao.add(parameter = new Parameter("character", name.substring(9, 13)).add("type", 4).add("index", name.charAt(19))));
                             png.add(parameter);
                         }
                     }

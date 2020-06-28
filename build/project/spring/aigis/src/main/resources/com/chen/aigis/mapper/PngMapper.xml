@@ -13,23 +13,23 @@
                p.count
         FROM png p
                  INNER JOIN url u ON p.url = u.id
-                 LEFT JOIN `character` c ON p.`character` = c.id
-        WHERE c.name = #{character}
+                 LEFT JOIN unit c ON p.unit = c.id
+        WHERE c.unit = #{character}
     </select>
     <select id="getAll" resultMap="character">
-        SELECT p.`character` id,
-               c.name        `character`,
+        SELECT p.unit id,
+               c.unit character,
                c.own,
                u.name,
                u.url,
                p.count
         FROM png p
                  LEFT JOIN url u ON p.url = u.id
-                 LEFT JOIN `character` c ON p.`character` = c.id
-        ORDER BY p.`character`, p.type, p.`index`
+                 LEFT JOIN unit c ON p.unit = c.id
+        ORDER BY p.unit, p.type, p."index"
     </select>
     <insert id="add">
-        INSERT png (`character`, type, `index`, url)
+        INSERT INTO png(unit, type, "index", url)
         SELECT #{character},
                #{type},
                #{index},

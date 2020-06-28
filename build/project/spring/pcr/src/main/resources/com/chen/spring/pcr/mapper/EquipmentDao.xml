@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chen.spring.pcr.dao.EquipmentDao">
+    <resultMap id="item" type="com.chen.spring.pcr.bean.Equipment" autoMapping="true">
+        <id column="id" property="id"/>
+        <collection property="materialList" ofType="com.chen.spring.pcr.bean.Equipment$Material" autoMapping="true">
+            <id column="order" property="order"/>
+        </collection>
+    </resultMap>
+    <select id="get" resultType="map">
+        SELECT id,
+               equipment
+        FROM equipment
+        WHERE equipment = #{equipment}
+    </select>
+    <select id="getAll" resultMap="item">
+        SELECT e.id,
+               e.equipment,
+               e.rare,
+               e.rank,
+               e.type,
+               e.item,
+               e.own,
+               e.own "left",
+               c."order",
+               c.material,
+               c.num
+        FROM equipment e
+                 LEFT JOIN compose c ON e.equipment = c.equipment
+        ORDER BY e.rare, e.rank, e.type, e.item, e.id
+    </select>
+    <update id="update">
+        UPDATE equipment
+        SET own = #{own}
+        WHERE equipment = #{equipment}
+    </update>
+    <update id="set">
+        UPDATE equipment
+        SET own = own - 1
+        WHERE equipment = #{equipment}
+    </update>
+</mapper>

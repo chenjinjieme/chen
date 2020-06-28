@@ -35,7 +35,7 @@ public class TorrentCheck {
         var torrent = new AtomicInteger();
         var ass = new AtomicInteger();
         for (var file : info.files()) paths.add(base.resolve(file.path()));
-        var bak = new LinkedHashSet<Path>(paths);
+        var bak = new LinkedHashSet<>(paths);
         Files.walk(base, file -> {
             if (!Files.isDirectory(file))
                 if (paths.contains(file)) paths.remove(file);
@@ -62,13 +62,13 @@ public class TorrentCheck {
             System.out.println(name);
             System.out.println();
             System.out.println("----------------------------------------------------------------------------------------------------");
-            System.out.println("-");
+            System.out.printf("- %s\n", paths.size());
             for (var file : paths) System.out.println(file);
             System.out.println("----------------------------------------------------------------------------------------------------");
             System.out.println("torrent " + torrent.get());
             System.out.println("ass " + ass.get());
             System.out.println("----------------------------------------------------------------------------------------------------");
-            System.out.println("+");
+            System.out.printf("+ %s\n", files.size());
             for (var file : files) System.out.println(file);
             System.out.println("----------------------------------------------------------------------------------------------------");
         }
@@ -136,8 +136,8 @@ public class TorrentCheck {
                     offset = 0;
                 }
                 var digest = messageDigestThreadLocal.get().digest(buffer.array(), 0, read);
-                var sequence = piece.sequence();
-                if (Arrays.equals(digest, 0, digest.length, sequence.bytes(), sequence.offset(), sequence.offset() + sequence.length())) {
+                var sequence = piece.buffer();
+                if (Arrays.equals(digest, 0, digest.length, sequence.array(), sequence.position(), sequence.limit())) {
                     piece.checked(true);
                     checked.getAndIncrement();
                 }

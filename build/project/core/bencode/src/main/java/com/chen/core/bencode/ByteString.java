@@ -1,52 +1,48 @@
 package com.chen.core.bencode;
 
-import com.chen.core.lang.ByteSequence;
-import com.chen.core.nio.ByteBuffer;
+import java.nio.ByteBuffer;
+import java.util.stream.IntStream;
 
 public class ByteString implements Value {
-    private ByteSequence sequence;
-
-    public ByteString(ByteSequence sequence) {
-        this.sequence = sequence;
-    }
+    private ByteBuffer buffer;
 
     public ByteString(String s) {
-        this(new ByteSequence(s.getBytes()));
+        buffer = ByteBuffer.wrap(s.getBytes());
     }
 
-    private ByteString(ByteBuffer buffer) {
-        var length = 0;
-        for (var b = buffer.get(); b != ':'; b = buffer.get()) length = length * 10 + b - '0';
-        sequence = buffer.toByteSequence(buffer.position(), length);
-        buffer.position(buffer.position() + length);
+    public ByteString(ByteBuffer buffer) {
+        this.buffer = buffer;
     }
 
-    public ByteSequence sequence() {
-        return sequence;
-    }
-
-    public int length() {
-        var length = sequence.length();
-        return java.lang.Integer.toString(length).length() + length + 1;
+    public ByteBuffer buffer() {
+        return buffer;
     }
 
     public static ByteString parse(ByteBuffer buffer) {
-        return new ByteString(buffer);
+        var length = IntStream.iterate(buffer.get(), b -> b != ':', b -> buffer.get()).reduce(0, (l, b) -> l * 10 + b - '0');
+        var duplicate = buffer.duplicate().limit(length += buffer.position());
+        buffer.position(length);
+        return new ByteString(duplicate);
+    }
+
+    public int bufferSize() {
+        var length = buffer.remaining();
+        return Values.length(length) + length + 1;
     }
 
     public void write(ByteBuffer buffer) {
-        buffer.put(java.lang.Integer.toString(sequence.length()).getBytes()).put((byte) ':').put(sequence.bytes(), sequence.offset(), sequence.length());
+        buffer.put(java.lang.Integer.toString(this.buffer.remaining()).getBytes()).put((byte) ':').put(this.buffer.duplicate());
     }
 
     public int hashCode() {
-        return sequence.hashCode();
+        return buffer.hashCode();
     }
 
     public boolean equals(Object obj) {
-        return obj == this || obj instanceof ByteString && ((ByteString) obj).sequence.equals(sequence);
+        return obj instanceof ByteString && ((ByteString) obj).buffer.equals(buffer);
     }
 
     public String toString() {
-        return sequence.toString();
+        return new String(buffer.array(), buffer.position(), buffer.remaining());
     }
 }

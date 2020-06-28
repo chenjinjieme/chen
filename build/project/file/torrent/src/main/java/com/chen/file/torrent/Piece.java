@@ -1,19 +1,18 @@
 package com.chen.file.torrent;
 
-import com.chen.core.lang.ByteSequence;
-
+import java.nio.ByteBuffer;
 import java.util.List;
 
 public class Piece {
     private int index;
-    private ByteSequence sequence;
+    private ByteBuffer buffer;
     private List<File> files;
     private long offset;
     private boolean checked;
 
-    Piece(int index, ByteSequence sequence, List<File> files, long offset) {
+    Piece(int index, ByteBuffer buffer, List<File> files, long offset) {
         this.index = index;
-        this.sequence = sequence;
+        this.buffer = buffer;
         this.files = files;
         this.offset = offset;
     }
@@ -22,8 +21,8 @@ public class Piece {
         return index;
     }
 
-    public ByteSequence sequence() {
-        return sequence;
+    public ByteBuffer buffer() {
+        return buffer;
     }
 
     public List<File> files() {

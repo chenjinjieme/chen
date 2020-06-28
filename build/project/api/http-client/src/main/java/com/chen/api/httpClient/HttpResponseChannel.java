@@ -1,7 +1,7 @@
 package com.chen.api.httpClient;
 
+import com.chen.core.hex.Hexs;
 import com.chen.core.io.ByteBufferOutputStream;
-import com.chen.core.math.HexUtil;
 import com.chen.core.nio.channels.BufferedReadableByteChannel;
 
 import java.io.IOException;
@@ -82,7 +82,7 @@ public class HttpResponseChannel extends BufferedReadableByteChannel {
     private void readChunk() throws IOException {
         stream.clear();
         readLine();
-        for (var b : stream) contentLength = contentLength << 4 | HexUtil.DECIMAL[b];
+        for (var b : stream) contentLength = contentLength << 4 | Hexs.DECIMAL[b];
         if (contentLength == 0) {
             readLine();
             close();

@@ -1,7 +1,5 @@
 package com.chen.core.crypto;
 
-import com.chen.core.math.HexUtil;
-
 import javax.crypto.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -35,20 +33,12 @@ public class AES {
         }
     }
 
-    public String encrypt(String s) {
-        return HexUtil.getHex(encrypt(s.getBytes()));
-    }
-
     public byte[] decrypt(byte[] bytes) {
         try {
             return decryptCipher.doFinal(bytes);
         } catch (IllegalBlockSizeException | BadPaddingException e) {
             throw new AESException(e);
         }
-    }
-
-    public String decrypt(String s) {
-        return new String(decrypt(HexUtil.getBytes(s)));
     }
 
     private static class AESException extends RuntimeException {

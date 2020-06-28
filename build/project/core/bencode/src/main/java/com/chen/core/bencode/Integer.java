@@ -1,25 +1,25 @@
 package com.chen.core.bencode;
 
-import com.chen.core.nio.ByteBuffer;
+import java.nio.ByteBuffer;
+import java.util.stream.LongStream;
 
 public class Integer implements Value {
     private long value;
 
-    private Integer(ByteBuffer buffer) {
-        if (buffer.get() != 'i') throw new ParseException("not an integer");
-        for (var b = buffer.get(); b != 'e'; b = buffer.get()) value = value * 10 + b - '0';
+    public Integer(long value) {
+        this.value = value;
     }
 
     public long value() {
         return value;
     }
 
-    public int length() {
-        return Long.toString(value).length() + 2;
+    public static Integer parse(ByteBuffer buffer) {
+        return new Integer(LongStream.iterate(buffer.position(buffer.position() + 1).get(), b -> b != 'e', b -> buffer.get()).reduce(0L, (value, b) -> value * 10 + b - '0'));
     }
 
-    public static Integer parse(ByteBuffer buffer) {
-        return new Integer(buffer);
+    public int bufferSize() {
+        return Values.length(value) + 2;
     }
 
     public void write(ByteBuffer buffer) {

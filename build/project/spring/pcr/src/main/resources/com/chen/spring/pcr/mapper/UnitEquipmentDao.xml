@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chen.spring.pcr.dao.UnitEquipmentDao">
+    <resultMap id="rank" type="com.chen.spring.pcr.bean.Rank" autoMapping="true">
+        <id property="rank" column="rank"/>
+        <collection property="equipmentList" ofType="com.chen.spring.pcr.bean.Rank$Equipment" autoMapping="true">
+            <id property="order" column="order"/>
+        </collection>
+    </resultMap>
+    <select id="get" resultType="map">
+        SELECT equipment
+        FROM unit_equipment
+        WHERE unit = #{unit}
+          AND rank = #{rank}
+          AND "order" = #{order}
+    </select>
+    <select id="getAll" resultMap="rank">
+        SELECT rank,
+               "order",
+               equipment,
+               "set"
+        FROM unit_equipment
+        WHERE unit = #{unit}
+    </select>
+    <select id="getUnset" resultType="map">
+        SELECT equipment,
+               count(equipment) num
+        FROM unit_equipment
+        WHERE "set" = -6
+        GROUP BY equipment
+    </select>
+    <insert id="add">
+        INSERT INTO unit_equipment(id, unit, rank, "order", equipment, "set")
+        VALUES (#{id}, #{unit}, #{rank}, #{order}, #{equipment}, #{set})
+    </insert>
+    <update id="update">
+        UPDATE unit_equipment
+        SET equipment = #{equipment},
+            "set"     = #{set}
+        WHERE unit = #{unit}
+          AND rank = #{rank}
+          AND "order" = #{order}
+    </update>
+    <update id="set">
+        UPDATE unit_equipment
+        SET "set" = 1
+        WHERE unit = #{unit}
+          AND rank = #{rank}
+          AND "order" = #{order}
+    </update>
+</mapper>

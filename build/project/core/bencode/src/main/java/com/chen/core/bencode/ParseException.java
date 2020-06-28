@@ -1,7 +1,0 @@
-package com.chen.core.bencode;
-
-public class ParseException extends RuntimeException {
-    public ParseException(String message) {
-        super(message);
-    }
-}
