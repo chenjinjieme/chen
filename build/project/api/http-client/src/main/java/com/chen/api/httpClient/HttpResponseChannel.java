@@ -1,8 +1,6 @@
 package com.chen.api.httpClient;
 
 import com.chen.core.hex.Hexs;
-import com.chen.core.io.ByteBufferOutputStream;
-import com.chen.core.nio.channels.BufferedReadableByteChannel;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

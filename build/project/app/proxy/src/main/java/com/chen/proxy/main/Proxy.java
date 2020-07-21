@@ -1,6 +1,5 @@
 package com.chen.proxy.main;
 
-import com.chen.core.util.concurrent.CachedThreadPool;
 import com.chen.proxy.nio.channels.ProxyChannel;
 import com.chen.proxy.nio.channels.RequestChannel;
 
@@ -9,6 +8,8 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static java.nio.channels.SelectionKey.OP_CONNECT;
 import static java.nio.channels.SelectionKey.OP_READ;
@@ -18,7 +19,7 @@ public class Proxy {
     private final Object wakeup = new Object();
     private int port;
     private Selector selector;
-    private CachedThreadPool pool = new CachedThreadPool();
+    private ExecutorService pool = Executors.newCachedThreadPool();
 
     public Proxy(int port) {
         this.port = port;
@@ -30,7 +31,10 @@ public class Proxy {
         pool.submit(() -> {
             for (; ; ) {
                 SocketChannel socket = serverSocketChannel.accept();
-                pool.submit(() -> register(newProxyChannel(socket), newRequestChannel()));
+                pool.submit(() -> {
+                    register(newProxyChannel(socket), newRequestChannel());
+                    return null;
+                });
             }
         });
         pool.submit(() -> {
@@ -61,6 +65,7 @@ public class Proxy {
                     proxy.close();
                     remote.close();
                 }
+                return null;
             });
         }
     }

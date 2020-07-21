@@ -40,12 +40,10 @@ function u(o) {
         sex: sex.val(),
         rare: rare.val(),
         clazz: clazz.val()
-    }, function (result) {
-        if (result.message === "success") {
-            let p = o.parent().html(name).parent().addClass("check");
-            if (name === "") p.addClass("null");
-            if (location.search !== "?status=null" || name !== "") p.prop("hidden", true);
-        }
+    }, function () {
+        let p = o.parent().html(name).parent().addClass("check");
+        if (name === "") p.addClass("null");
+        if (location.search !== "?status=null" || name !== "") p.prop("hidden", true);
     });
 }
 

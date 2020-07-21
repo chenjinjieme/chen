@@ -17,7 +17,7 @@ public class Info {
     public static final ByteString NAME = new ByteString("name");
     public static final ByteString PIECE_LENGTH = new ByteString("piece length");
     public static final ByteString PIECES = new ByteString("pieces");
-    private Dictionary dictionary;
+    private final Dictionary dictionary;
 
     Info(Dictionary dictionary) {
         this.dictionary = dictionary;
@@ -32,7 +32,7 @@ public class Info {
     }
 
     public java.util.List<File> files() {
-        return Optional.ofNullable((List) dictionary.get(FILES)).map(files -> files.stream().map(file -> (Dictionary) file).map(file -> new File(((Integer) file.get(LENGTH)), ((List) file.get(PATH))))).or(() -> Optional.of(Stream.of(new File((Integer) dictionary.get(LENGTH), List.of(dictionary.get(NAME)))))).get().collect(Collectors.toList());
+        return Optional.ofNullable((List) dictionary.get(FILES)).map(files -> files.stream().map(file -> (Dictionary) file).map(file -> new File((Integer) file.get(LENGTH), (List) file.get(PATH)))).or(() -> Optional.of(Stream.of(new File((Integer) dictionary.get(LENGTH), List.of(dictionary.get(NAME)))))).get().collect(Collectors.toList());
     }
 
     public int pieceLength() {
@@ -41,28 +41,9 @@ public class Info {
 
     public java.util.List<Piece> pieces() {
         var buffer = ((ByteString) dictionary.get(PIECES)).buffer();
-        var pieceLength = pieceLength();
-        var pieces = new ArrayList<Piece>(buffer.remaining() / pieceLength + 1);
-        var files = files();
-        var n = buffer.position();
-        var offset = 0L;
-        for (int i = 0, l = files.size(), index = 0; i < l; ) {
-            var paths = new ArrayList<File>();
-            pieces.add(new Piece(index++, buffer.duplicate().position(n).limit(n += 20), paths, offset));
-            for (var j = pieceLength; j > 0 && i < l; ) {
-                var file = files.get(i);
-                var length = file.length() - offset;
-                if (length > j) {
-                    offset = offset + j;
-                    j = 0;
-                } else {
-                    offset = 0;
-                    j -= length;
-                    i++;
-                }
-                paths.add(file);
-            }
-        }
+        var pieces = new ArrayList<Piece>(buffer.remaining() / 20);
+        var limit = buffer.limit();
+        for (var i = buffer.position(); i < limit; ) pieces.add(new Piece(buffer.duplicate().position(i).limit(i += 20)));
         return pieces;
     }
 }

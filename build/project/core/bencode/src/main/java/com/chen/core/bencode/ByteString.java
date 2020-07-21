@@ -1,17 +1,27 @@
 package com.chen.core.bencode;
 
 import java.nio.ByteBuffer;
-import java.util.stream.IntStream;
+import java.nio.channels.ByteChannel;
+import java.util.List;
 
-public class ByteString implements Value {
-    private ByteBuffer buffer;
+public class ByteString implements Bencode {
+    private final ByteBuffer buffer;
+    private ByteBuffer prefix;
+    private String string;
+    private int hashCode;
 
-    public ByteString(String s) {
-        buffer = ByteBuffer.wrap(s.getBytes());
+    private ByteString(ByteBuffer buffer, ByteBuffer prefix) {
+        this.buffer = buffer;
+        this.prefix = prefix;
     }
 
     public ByteString(ByteBuffer buffer) {
         this.buffer = buffer;
+    }
+
+    public ByteString(String string) {
+        buffer = ByteBuffer.wrap(string.getBytes());
+        this.string = string;
     }
 
     public ByteBuffer buffer() {
@@ -19,30 +29,38 @@ public class ByteString implements Value {
     }
 
     public static ByteString parse(ByteBuffer buffer) {
-        var length = IntStream.iterate(buffer.get(), b -> b != ':', b -> buffer.get()).reduce(0, (l, b) -> l * 10 + b - '0');
-        var duplicate = buffer.duplicate().limit(length += buffer.position());
+        var prefix = buffer.duplicate();
+        var length = buffer.get() - '0';
+        for (var b = buffer.get(); b != ':'; b = buffer.get()) length = length * 10 + b - '0';
+        var position = buffer.position();
+        prefix.limit(position);
+        var duplicate = buffer.duplicate().limit(length += position);
         buffer.position(length);
-        return new ByteString(duplicate);
+        return new ByteString(duplicate, prefix);
     }
 
-    public int bufferSize() {
-        var length = buffer.remaining();
-        return Values.length(length) + length + 1;
+    private ByteBuffer prefix() {
+        byte[] bytes = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ':'};
+        var x = buffer.remaining();
+        var i = 9;
+        for (; x > 9; i--, x /= 10) bytes[i] = (byte) (x % 10 + '0');
+        bytes[i] = (byte) (x + '0');
+        return ByteBuffer.wrap(bytes).position(i);
     }
 
-    public void write(ByteBuffer buffer) {
-        buffer.put(java.lang.Integer.toString(this.buffer.remaining()).getBytes()).put((byte) ':').put(this.buffer.duplicate());
+    public ByteChannel channel() {
+        return new MultiByteChannel(List.of(new ByteBufferChannel((prefix == null ? prefix = prefix() : prefix).duplicate()), new ByteBufferChannel(buffer.duplicate())).iterator());
     }
 
     public int hashCode() {
-        return buffer.hashCode();
+        return hashCode == 0 ? hashCode = buffer.hashCode() : hashCode;
     }
 
     public boolean equals(Object obj) {
-        return obj instanceof ByteString && ((ByteString) obj).buffer.equals(buffer);
+        return this == obj || obj instanceof ByteString && ((ByteString) obj).buffer.equals(buffer);
     }
 
     public String toString() {
-        return new String(buffer.array(), buffer.position(), buffer.remaining());
+        return string == null ? string = new String(buffer.array(), buffer.position(), buffer.remaining()) : string;
     }
 }

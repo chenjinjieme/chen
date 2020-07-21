@@ -1,33 +1,26 @@
 package com.chen.core.bencode;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.ByteChannel;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.stream.Stream;
 
-public class Dictionary extends LinkedHashMap<ByteString, Value> implements Value {
+public class Dictionary extends LinkedHashMap<ByteString, Bencode> implements Bencode {
     public static Dictionary parse(ByteBuffer buffer) {
         var dictionary = new Dictionary();
-        for (var b = buffer.position(buffer.position() + 1).get(buffer.position()); b != 'e'; b = buffer.get(buffer.position())) dictionary.put(ByteString.parse(buffer), Value.parse(buffer));
+        for (var b = buffer.position(buffer.position() + 1).get(buffer.position()); b != 'e'; b = buffer.get(buffer.position())) dictionary.put(ByteString.parse(buffer), Bencode.parse(buffer));
         buffer.position(buffer.position() + 1);
         return dictionary;
     }
 
-    public static Dictionary of(Value... values) {
+    public static Dictionary of(Bencode... bencodes) {
         var dictionary = new Dictionary();
-        for (var i = 0; i < values.length; i++) dictionary.put((ByteString) values[i], values[++i]);
+        for (var i = 0; i < bencodes.length; i++) dictionary.put((ByteString) bencodes[i++], bencodes[i]);
         return dictionary;
     }
 
-    public int bufferSize() {
-        return entrySet().stream().flatMap(entry -> Stream.of(entry.getKey(), entry.getValue())).mapToInt(Value::bufferSize).sum() + 2;
-    }
-
-    public void write(ByteBuffer buffer) {
-        buffer.put((byte) 'd');
-        forEach((key, value) -> {
-            key.write(buffer);
-            value.write(buffer);
-        });
-        buffer.put((byte) 'e');
+    public ByteChannel channel() {
+        return new MultiByteChannel(List.of(new ByteBufferChannel((byte) 'd'), new MultiByteChannel(entrySet().stream().flatMap(entry -> Stream.of(entry.getKey(), entry.getValue())).map(Bencode::channel).iterator()), new ByteBufferChannel((byte) 'e')).iterator());
     }
 }

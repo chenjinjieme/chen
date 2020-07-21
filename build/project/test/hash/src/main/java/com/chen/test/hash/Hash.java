@@ -17,10 +17,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class Hash {
+    private static final Path DS_STORE = Path.of(".DS_Store");
     private Yaml yaml;
     private Path path;
     private Directory directory;
-    private MessageDigest md5;
+    private MessageDigest digest;
     private ScheduledFuture<?> future;
 
     public Hash(Path path) throws IOException {
@@ -30,7 +31,7 @@ public class Hash {
             yaml = new Yaml(options);
             this.path = path;
             (directory = new Directory("")).addAllPath(yaml.load(reader));
-            md5 = MessageDigest.getInstance("MD5");
+            digest = MessageDigest.getInstance("SHA-512");
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
@@ -45,17 +46,14 @@ public class Hash {
     private String hash(Path path) throws IOException {
         try (var channel = Files.newByteChannel(path)) {
             var buffer = ByteBuffer.allocate(8192);
-            for (; channel.read(buffer.clear()) > 0; ) md5.update(buffer.flip());
-            return Hexs.getHex(md5.digest());
+            for (; channel.read(buffer.clear()) > 0; ) digest.update(buffer.flip());
+            return Hexs.getHex(digest.digest());
         }
     }
 
     private void add(Directory parent, Path base, Path path) throws IOException {
+        if (path.endsWith(DS_STORE)) return;
         var name = path.getFileName().toString();
-        if (".DS_Store".equals(name)) {
-            Files.delete(path);
-            return;
-        }
         var resolve = base.resolve(name);
         if (Files.isDirectory(path)) {
             var directory = Optional.ofNullable(parent.getDirectory(name)).orElse(parent.newDirectory(name));
@@ -130,8 +128,8 @@ public class Hash {
         try (var list = Files.list(path)) {
             for (var iterator = list.sorted(Comparator.comparing((Function<Path, Boolean>) Files::isDirectory).reversed().thenComparing(Path::compareTo)).iterator(); iterator.hasNext(); ) {
                 var next = iterator.next();
-                if (Files.isDirectory(next)) listPath(root, next, set);
-                else set.add(root.relativize(next));
+                if (!next.endsWith(DS_STORE)) if (Files.isDirectory(next)) listPath(root, next, set);
+                else set.add(Path.of(root.relativize(next).toString()));
             }
         }
     }
@@ -179,14 +177,56 @@ public class Hash {
         }
         System.out.println("----------------------------------------------------------------------------------------------------");
         if (change.size() == 0) System.out.println("change none");
-        else change.forEach((key, value) -> {
-            System.out.printf("change %s: %s -> %s\n", key, baseMap.get(key), value);
-        });
+        else change.forEach((key, value) -> System.out.printf("change %s: %s -> %s\n", key, baseMap.get(key), value));
         System.out.println("----------------------------------------------------------------------------------------------------");
         if (miss.size() == 0) System.out.println("miss none");
-        else miss.forEach((key, value) -> {
-            System.out.printf("miss %s: %s -> %s\n", key, baseMap.get(key), value);
-        });
+        else miss.forEach((key, value) -> System.out.printf("miss %s: %s -> %s\n", key, baseMap.get(key), value));
+        System.out.println("----------------------------------------------------------------------------------------------------");
+    }
+
+    public void link(Path base, Path path, Path disk) throws IOException {
+        System.out.println("link");
+        System.out.println("----------------------------------------------------------------------------------------------------");
+        disk = disk.resolve("hash");
+        var baseMap = new LinkedHashMap<Path, String>();
+        var link = 0;
+        var skip = 0;
+        var same = new LinkedHashMap<Path, String>();
+        var find = new LinkedHashMap<Path, String>();
+        listBase(Path.of(""), find(base), baseMap);
+        for (var entry : baseMap.entrySet()) {
+            var key = entry.getKey();
+            var value = entry.getValue();
+            var file = path.resolve(key);
+            var hash = disk.resolve(value);
+            if (!Files.exists(hash)) {
+                Files.createLink(hash, file);
+                link++;
+                System.out.printf("link %s->%s\n", key, value);
+            } else if (!Files.isSameFile(file, hash)) if (hash(file).equals(value)) {
+                Files.delete(file);
+                Files.createLink(file, hash);
+                same.put(key, value);
+                System.out.printf("same %s->%s\n", key, value);
+            } else {
+                find.put(key, value);
+                System.out.printf("find %s->%s\n", key, value);
+            }
+            else {
+                skip++;
+                System.out.printf("skip %s->%s\n", key, value);
+            }
+        }
+        System.out.println("----------------------------------------------------------------------------------------------------");
+        System.out.printf("link %d\n", link);
+        System.out.println("----------------------------------------------------------------------------------------------------");
+        System.out.printf("skip %d\n", skip);
+        System.out.println("----------------------------------------------------------------------------------------------------");
+        if (same.size() == 0) System.out.println("same none");
+        else same.forEach((name, md5) -> System.out.printf("same %s -> %s\n", name, md5));
+        System.out.println("----------------------------------------------------------------------------------------------------");
+        if (find.size() == 0) System.out.println("find none");
+        else find.forEach((name, md5) -> System.out.printf("find %s -> %s\n", name, md5));
         System.out.println("----------------------------------------------------------------------------------------------------");
     }
 

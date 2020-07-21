@@ -4,12 +4,13 @@
     <parent>
         <groupId>com.chen</groupId>
         <artifactId>project</artifactId>
-        <version>0.7.0</version>
+        <version>0.7.1</version>
     </parent>
     <groupId>com.chen.file</groupId>
     <artifactId>file</artifactId>
     <packaging>pom</packaging>
     <modules>
+        <module>db</module>
         <module>picture</module>
         <module>torrent</module>
     </modules>

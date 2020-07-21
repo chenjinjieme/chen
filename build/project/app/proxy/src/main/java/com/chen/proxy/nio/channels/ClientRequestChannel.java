@@ -1,7 +1,6 @@
 package com.chen.proxy.nio.channels;
 
-import com.chen.core.crypto.AES;
-import com.chen.core.nio.channels.AESChannel;
+import com.chen.proxy.crypto.AES;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

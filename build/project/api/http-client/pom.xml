@@ -4,14 +4,10 @@
     <parent>
         <groupId>com.chen.api</groupId>
         <artifactId>api</artifactId>
-        <version>0.7.0</version>
+        <version>0.7.1</version>
     </parent>
     <artifactId>http-client</artifactId>
     <dependencies>
-        <dependency>
-            <groupId>com.chen.core</groupId>
-            <artifactId>base</artifactId>
-        </dependency>
         <dependency>
             <groupId>com.chen.core</groupId>
             <artifactId>hex</artifactId>

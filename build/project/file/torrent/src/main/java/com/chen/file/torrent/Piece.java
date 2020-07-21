@@ -1,44 +1,15 @@
 package com.chen.file.torrent;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 
 public class Piece {
-    private int index;
-    private ByteBuffer buffer;
-    private List<File> files;
-    private long offset;
-    private boolean checked;
+    private final ByteBuffer hash;
 
-    Piece(int index, ByteBuffer buffer, List<File> files, long offset) {
-        this.index = index;
-        this.buffer = buffer;
-        this.files = files;
-        this.offset = offset;
+    Piece(ByteBuffer hash) {
+        this.hash = hash;
     }
 
-    public int index() {
-        return index;
-    }
-
-    public ByteBuffer buffer() {
-        return buffer;
-    }
-
-    public List<File> files() {
-        return files;
-    }
-
-    public long offset() {
-        return offset;
-    }
-
-    public boolean checked() {
-        return checked;
-    }
-
-    public Piece checked(boolean checked) {
-        this.checked = checked;
-        return this;
+    public ByteBuffer hash() {
+        return hash;
     }
 }

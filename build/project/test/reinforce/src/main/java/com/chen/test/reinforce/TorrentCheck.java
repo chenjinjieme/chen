@@ -1,29 +1,43 @@
 package com.chen.test.reinforce;
 
-import com.chen.core.nio.file.Files;
-import com.chen.core.security.MessageDigest;
-import com.chen.core.util.function.Consumer3;
 import com.chen.file.torrent.File;
 import com.chen.file.torrent.Torrent;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.TreeSet;
-import java.util.concurrent.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class TorrentCheck {
-    private Torrent torrent;
+    private static final ExecutorService POOL = Executors.newCachedThreadPool();
+    private static final Path DS_STORE = Path.of(".DS_Store");
+    private final Torrent torrent;
 
     public TorrentCheck(Torrent torrent) {
         this.torrent = torrent;
+    }
+
+    private void pre(Path path, Set<Path> paths, Set<Path> files) throws IOException {
+        try (var list = Files.list(path)) {
+            for (var iterator = list.iterator(); iterator.hasNext(); ) {
+                var file = Path.of(iterator.next().toString());
+                if (Files.isDirectory(file)) pre(file, paths, files);
+                else if (paths.contains(file)) paths.remove(file);
+                else if (!file.endsWith(DS_STORE)) files.add(file);
+            }
+        }
     }
 
     public TorrentCheck pre(Path path) throws IOException {
@@ -32,31 +46,8 @@ public class TorrentCheck {
         var info = torrent.info();
         var name = info.name();
         var base = path.resolve(name);
-        var torrent = new AtomicInteger();
-        var ass = new AtomicInteger();
         for (var file : info.files()) paths.add(base.resolve(file.path()));
-        var bak = new LinkedHashSet<>(paths);
-        Files.walk(base, file -> {
-            if (!Files.isDirectory(file))
-                if (paths.contains(file)) paths.remove(file);
-                else {
-                    var fileName = file.getFileName().toString();
-                    var index = fileName.lastIndexOf('.');
-                    var extension = fileName.substring(index + 1);
-                    if (extension.equals("torrent")) {
-                        if (fileName.substring(0, index).equals(name)) {
-                            torrent.getAndIncrement();
-                            return;
-                        }
-                    } else if (extension.equals("ass")) {
-                        if (bak.contains(file.resolveSibling(fileName.substring(0, index) + ".mkv"))) {
-                            ass.getAndIncrement();
-                            return;
-                        }
-                    }
-                    files.add(file);
-                }
-        });
+        pre(base, paths, files);
         synchronized (TorrentCheck.class) {
             System.out.println();
             System.out.println(name);
@@ -64,9 +55,6 @@ public class TorrentCheck {
             System.out.println("----------------------------------------------------------------------------------------------------");
             System.out.printf("- %s\n", paths.size());
             for (var file : paths) System.out.println(file);
-            System.out.println("----------------------------------------------------------------------------------------------------");
-            System.out.println("torrent " + torrent.get());
-            System.out.println("ass " + ass.get());
             System.out.println("----------------------------------------------------------------------------------------------------");
             System.out.printf("+ %s\n", files.size());
             for (var file : files) System.out.println(file);
@@ -86,7 +74,7 @@ public class TorrentCheck {
             if (!Files.exists(name)) create.add(file);
             else if (Files.size(name) != file.length()) reset.add(file);
             else continue;
-            Files.setLength(name, file.length());
+            new RandomAccessFile(name.toFile(), "rw").setLength(file.length());
         }
         synchronized (TorrentCheck.class) {
             System.out.println("create");
@@ -99,11 +87,24 @@ public class TorrentCheck {
         return this;
     }
 
-    public TorrentCheck check(Path path, int nThreads) throws ExecutionException, InterruptedException {
-        return check(path, Executors.newFixedThreadPool(nThreads));
+    private void check(ThreadLocal<MessageDigest> local, ByteBuffer buffer, ByteBuffer hash, AtomicInteger checked, AtomicInteger count, ByteBufferQueue queue) {
+        POOL.submit(() -> {
+            var digest = local.get();
+            digest.update(buffer);
+            var bytes = digest.digest();
+            var match = true;
+            for (var j = 0; j < 20; j++)
+                if (bytes[j] != hash.get()) {
+                    match = false;
+                    break;
+                }
+            if (match) checked.incrementAndGet();
+            count.incrementAndGet();
+            queue.offer(buffer.clear());
+        });
     }
 
-    public TorrentCheck check(Path path, ExecutorService executorService) throws ExecutionException, InterruptedException {
+    public TorrentCheck check(Path path) throws IOException {
         var info = torrent.info();
         var pieces = info.pieces();
         var pieceLength = info.pieceLength();
@@ -112,69 +113,126 @@ public class TorrentCheck {
         System.out.println("----------------------------------------------------------------------------------------------------");
         var base = path.resolve(name);
         var size = pieces.size();
-        var count = new AtomicInteger();
         var checked = new AtomicInteger();
-        var scheduledFutures = new ScheduledFuture<?>[1];
-        scheduledFutures[0] = Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
-            var i = count.get();
-            var j = checked.get();
-            System.out.printf("%s/%s/%s %.2f%%/%.2f%%%n", j, i, size, j * 100d / size, i * 100d / size);
-            if (i == size) scheduledFutures[0].cancel(true);
+        var count = new AtomicInteger();
+        var time = new AtomicInteger();
+        var d = pieceLength / (1048576.0);
+        var scheduledFuture = Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
+            var x = checked.get();
+            var y = count.get();
+            var z = time.incrementAndGet();
+            System.out.printf("%s/%s/%s %.2f%%/%.2f%% %.2fM/s%n", x, y, size, x * 100d / size, y * 100d / size, y * d / z);
         }, 0, 1, SECONDS);
-        var futures = new ArrayList<Future<Object>>(size);
-        var bufferThreadLocal = ThreadLocal.withInitial(() -> ByteBuffer.allocate(pieceLength));
-        var messageDigestThreadLocal = ThreadLocal.withInitial(MessageDigest::sha1);
-        for (var piece : pieces)
-            futures.add(executorService.submit(() -> {
-                var offset = piece.offset();
-                var read = 0;
-                var buffer = bufferThreadLocal.get().clear();
-                for (var file : piece.files()) {
-                    try (var channel = FileChannel.open(base.resolve(file.path()))) {
-                        read += channel.position(offset).read(buffer);
+        var local = ThreadLocal.withInitial(() -> {
+            try {
+                return MessageDigest.getInstance("SHA-1");
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+        var queue = new ByteBufferQueue(pieceLength);
+        var buffer = queue.poll();
+        var i = 0;
+        var remaining = 0L;
+        for (var file : info.files()) {
+            var resolve = base.resolve(file.path());
+            var offset = remaining;
+            remaining += file.length();
+            if (!Files.exists(resolve)) {
+                System.out.printf("miss %s\n", resolve);
+                for (; remaining > 0; remaining -= pieceLength, i++) count.incrementAndGet();
+                buffer.clear();
+            } else if (remaining > 0) try (var open = FileChannel.open(resolve)) {
+                if (offset < 0) open.position(-offset);
+                for (; remaining > pieceLength; remaining -= pieceLength, i++) {
+                    open.read(buffer);
+                    if (buffer.position() < pieceLength) {
+                        System.out.printf("less %s\n", resolve);
+                        for (; remaining > pieceLength; remaining -= pieceLength, i++) count.incrementAndGet();
+                        count.incrementAndGet();
+                        buffer.clear();
+                    } else {
+                        check(local, buffer.flip(), pieces.get(i).hash().duplicate(), checked, count, queue);
+                        buffer = queue.poll();
                     }
-                    offset = 0;
                 }
-                var digest = messageDigestThreadLocal.get().digest(buffer.array(), 0, read);
-                var sequence = piece.buffer();
-                if (Arrays.equals(digest, 0, digest.length, sequence.array(), sequence.position(), sequence.limit())) {
-                    piece.checked(true);
-                    checked.getAndIncrement();
+                if (remaining > 0) {
+                    open.read(buffer);
+                    var position = buffer.position();
+                    if (position < remaining) {
+                        System.out.printf("less %s\n", resolve);
+                        remaining -= pieceLength;
+                        i++;
+                        count.incrementAndGet();
+                        buffer.clear();
+                    } else if (position > remaining) {
+                        System.out.printf("long %s\n", resolve);
+                        buffer.position((int) remaining);
+                    }
                 }
-                count.getAndIncrement();
-                return null;
-            }));
-        for (var future : futures) future.get();
+            }
+        }
+        if (remaining > 0) check(local, buffer.flip(), pieces.get(i).hash().duplicate(), checked, count, queue);
+        synchronized (this) {
+            try {
+                for (; count.get() < size; ) this.wait(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         try {
-            scheduledFutures[0].get();
+            scheduledFuture.cancel(false);
         } catch (CancellationException ignored) {
         }
         System.out.println("----------------------------------------------------------------------------------------------------");
-        for (var piece : pieces)
-            if (!piece.checked()) {
-                System.out.println(piece.index());
-                for (var file : piece.files()) System.out.println(file.path());
-                System.out.println("----------------------------------------------------------------------------------------------------");
-            }
+        var x = checked.get();
+        var y = count.get();
+        var z = time.get();
+        System.out.printf("%s/%s/%s %.2f%%/%.2f%% %.2fM/s%n", x, y, size, x * 100d / size, y * 100d / size, y * d / z);
+        System.out.println("----------------------------------------------------------------------------------------------------");
+        System.out.println();
         return this;
     }
 
-    public static void preAll(Path path) throws IOException, ExecutionException, InterruptedException {
-        var pool = Executors.newCachedThreadPool();
-        var futures = new ArrayList<Future<Object>>();
-        Files.walk(path, file -> {
-            futures.add(pool.submit(() -> {
-                if (file.getFileName().toString().endsWith(".torrent")) new TorrentCheck(Torrent.parse(file)).pre(file.getParent().getParent());
-                return null;
-            }));
-        });
-        for (var future : futures) future.get();
+    private static void doAll(Path path, Path base, BiConsumer consumer) throws IOException {
+        try (var list = Files.list(path).filter(Files::isDirectory)) {
+            for (var iterator = list.iterator(); iterator.hasNext(); ) {
+                var next = iterator.next();
+                var resolve = base.resolve(next.getFileName().toString() + ".torrent");
+                if (Files.exists(resolve)) consumer.accept(new TorrentCheck(Torrent.parse(resolve)), path);
+                else doAll(next, base, consumer);
+            }
+        }
     }
 
-    public static void checkAll(Path path, int nThreads) throws IOException, ExecutionException, InterruptedException {
-        var fixedThreadPool = Executors.newFixedThreadPool(nThreads);
-        Files.walk(path, (Consumer3<Path, IOException, ExecutionException, InterruptedException>) file -> {
-            if (file.getFileName().toString().endsWith(".torrent")) new TorrentCheck(Torrent.parse(file)).check(file.getParent().getParent(), fixedThreadPool);
-        });
+    public static void preAll(Path path, Path base) throws IOException {
+        doAll(path, base, TorrentCheck::pre);
+    }
+
+    public static void checkAll(Path path, Path base) throws IOException {
+        doAll(path, base, TorrentCheck::check);
+    }
+
+    private interface BiConsumer {
+        void accept(TorrentCheck check, Path parent) throws IOException;
+    }
+
+    private static class ByteBufferQueue {
+        private final Queue<ByteBuffer> queue;
+        private final int length;
+
+        private ByteBufferQueue(int capacity) {
+            queue = new ConcurrentLinkedQueue<>();
+            this.length = capacity;
+        }
+
+        private ByteBuffer poll() {
+            return Optional.ofNullable(queue.poll()).orElseGet(() -> ByteBuffer.allocate(length));
+        }
+
+        private void offer(ByteBuffer buffer) {
+            queue.offer(buffer);
+        }
     }
 }

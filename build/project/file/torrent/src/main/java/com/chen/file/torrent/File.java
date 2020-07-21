@@ -6,12 +6,13 @@ import com.chen.core.bencode.List;
 import java.nio.file.Path;
 
 public class File {
-    private Integer length;
-    private List path;
+    private final Integer length;
+    private final List list;
+    private Path path;
 
-    File(Integer length, List path) {
+    File(Integer length, List list) {
         this.length = length;
-        this.path = path;
+        this.list = list;
     }
 
     public long length() {
@@ -19,8 +20,9 @@ public class File {
     }
 
     public Path path() {
-        var path = Path.of("");
-        for (var value : this.path) path = path.resolve(value.toString());
+        if (path != null) return path;
+        path = Path.of("");
+        for (var value : list) path = path.resolve(value.toString());
         return path;
     }
 }

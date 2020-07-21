@@ -4,23 +4,20 @@
     <parent>
         <groupId>com.chen</groupId>
         <artifactId>project</artifactId>
-        <version>0.7.0</version>
+        <version>0.7.1</version>
     </parent>
     <groupId>com.chen.spring</groupId>
     <artifactId>spring</artifactId>
     <packaging>pom</packaging>
     <properties>
         <start-class/>
-        <com.github.pagehelper.pagehelper-spring-boot-starter>1.2.13</com.github.pagehelper.pagehelper-spring-boot-starter>
-        <mysql.mysql-connector-java>8.0.20</mysql.mysql-connector-java>
         <org.mybatis.spring.boot.mybatis-spring-boot-starter>2.1.3</org.mybatis.spring.boot.mybatis-spring-boot-starter>
         <org.springframework.boot>2.3.1.RELEASE</org.springframework.boot>
-        <org.xerial.sqlite-jdbc>3.32.3</org.xerial.sqlite-jdbc>
+        <org.xerial.sqlite-jdbc>3.32.3.1</org.xerial.sqlite-jdbc>
     </properties>
     <modules>
         <module>aigis</module>
         <module>maho</module>
-        <module>spring-base</module>
         <module>pcr</module>
     </modules>
     <dependencies>
@@ -33,21 +30,6 @@
     </dependencies>
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.chen.spring</groupId>
-                <artifactId>spring-base</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.pagehelper</groupId>
-                <artifactId>pagehelper-spring-boot-starter</artifactId>
-                <version>${com.github.pagehelper.pagehelper-spring-boot-starter}</version>
-            </dependency>
-            <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <version>${mysql.mysql-connector-java}</version>
-            </dependency>
             <dependency>
                 <groupId>org.mybatis.spring.boot</groupId>
                 <artifactId>mybatis-spring-boot-starter</artifactId>

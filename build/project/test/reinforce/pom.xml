@@ -4,14 +4,10 @@
     <parent>
         <groupId>com.chen.test</groupId>
         <artifactId>test</artifactId>
-        <version>0.7.0</version>
+        <version>0.7.1</version>
     </parent>
     <artifactId>reinforce</artifactId>
     <dependencies>
-        <dependency>
-            <groupId>com.chen.core</groupId>
-            <artifactId>base</artifactId>
-        </dependency>
         <dependency>
             <groupId>com.chen.file</groupId>
             <artifactId>torrent</artifactId>

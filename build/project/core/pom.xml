@@ -4,13 +4,12 @@
     <parent>
         <groupId>com.chen</groupId>
         <artifactId>project</artifactId>
-        <version>0.7.0</version>
+        <version>0.7.1</version>
     </parent>
     <groupId>com.chen.core</groupId>
     <artifactId>core</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>base</module>
         <module>bencode</module>
         <module>hex</module>
     </modules>

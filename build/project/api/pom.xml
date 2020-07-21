@@ -4,12 +4,13 @@
     <parent>
         <groupId>com.chen</groupId>
         <artifactId>project</artifactId>
-        <version>0.7.0</version>
+        <version>0.7.1</version>
     </parent>
     <groupId>com.chen.api</groupId>
     <artifactId>api</artifactId>
     <packaging>pom</packaging>
     <modules>
         <module>http-client</module>
+        <module>server</module>
     </modules>
 </project>

@@ -1,11 +1,5 @@
 package com.chen.api.httpClient;
 
-import com.chen.core.io.ByteBufferOutputStream;
-import com.chen.core.net.URL;
-import com.chen.core.net.ssl.Context;
-import com.chen.core.net.ssl.Engine;
-import com.chen.core.nio.channels.SSLChannel;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.ByteChannel;
