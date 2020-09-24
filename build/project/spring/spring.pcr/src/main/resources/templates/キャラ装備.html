@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>キャラ装備</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.5.2/css/bootstrap.min.css}">
+</head>
+<body>
+<div class="container-fluid">
+    <div th:data-unit="${unit}">
+        <div th:each="rank:${rankList}" th:data-rank="${rank.rank}">
+            <div class="row">
+                <div class="col-2">
+                    <input class="form-control form-control-sm" th:value="|Rank${rank.rank}|" readonly>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-2" th:each="equipment:${rank.equipmentList}" th:data-order="${equipment.order}">
+                    <img th:src="@{|/icon/装備/icon_equipment_${equipment.id}.png|}">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-2" th:each="equipment:${rank.equipmentList}" th:data-order="${equipment.order}">
+                    <input class="form-control form-control-sm" th:value="${equipment.equipment}" readonly onclick="copy($(this))">
+                </div>
+            </div>
+            <th:block th:with="set=${rank.equipmentList[0].set+rank.equipmentList[1].set+rank.equipmentList[2].set+rank.equipmentList[3].set+rank.equipmentList[4].set+rank.equipmentList[5].set}">
+                <th:block th:unless="${set==6}">
+                    <div class="row">
+                        <div class="col-2" th:each="equipment:${rank.equipmentList}" th:switch="${equipment.set}" th:data-order="${equipment.order}">
+                            <th:block th:case="0">
+                                <div class="input-group input-group-sm">
+                                    <input class="form-control">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="update($(this))">编辑</button>
+                                </div>
+                            </th:block>
+                            <button th:case="-6" type="button" class="btn btn-outline-primary btn-sm float-right" onclick="set($(this))">装備</button>
+                        </div>
+                    </div>
+                    <div th:if="${set<0}">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="setAll($(this))">まともて装備</button>
+                    </div>
+                </th:block>
+            </th:block>
+        </div>
+        <div th:data-rank="${rankList.size()+1}">
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="addAll($(this))">新增</button>
+        </div>
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="count($(this))">count</button>
+        <div class="row">
+            <div class="col-2"></div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/webjars/jquery/3.5.1/jquery.min.js}"></script>
+<script th:src="@{/js/キャラ装備.js}"></script>
+</body>
+</html>

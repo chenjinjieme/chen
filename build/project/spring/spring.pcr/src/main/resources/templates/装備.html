@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>装備</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.5.2/css/bootstrap.min.css}">
+</head>
+<body>
+<div class="container-fluid">
+    <div th:hidden="${hide} and ${equipment.left>0}" th:data-equipment="${equipment.equipment}" th:each="equipment:${equipmentList}">
+        <div class="dropdown-divider"></div>
+        <div class="row">
+            <div class="col-2">
+                <input class="form-control form-control-sm" th:value="${equipment.id}" readonly>
+                <div class="input-group input-group-sm">
+                    <input class="form-control" th:id="${equipment.id}" th:value="${equipment.own}" onblur="update($(this))">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="compose($(this))">作成</button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-2">
+                <img th:src="@{|/icon/装備/icon_equipment_${equipment.id}.png|}">
+            </div>
+            <div class="col-2" th:each="material:${equipment.materialList}">
+                <img th:src="@{|/icon/装備/icon_equipment_${material.id}.png|}">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-2">
+                <input class="form-control form-control-sm" th:value="${equipment.equipment}" readonly onclick="copy($(this))">
+            </div>
+            <div class="col-2" th:each="material:${equipment.materialList}">
+                <input class="form-control form-control-sm" th:value="${material.material}" readonly onclick="copy($(this))">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-2">
+                <div class="input-group input-group-sm">
+                    <input class="form-control form-control-sm" th:value="${equipment.left}" readonly>
+                    <input class="form-control form-control-sm" th:value="${equipment.left-equipment.own}" readonly>
+                </div>
+            </div>
+            <div class="col-2" th:each="material:${equipment.materialList}">
+                <input class="form-control form-control-sm" th:data-material="${material.material}" th:value="${material.num}" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="fixed-bottom collapse">
+        <div class="alert alert-info">
+            <div class="progress">
+                <div class="progress-bar bg-danger"></div>
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/webjars/jquery/3.5.1/jquery.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/4.5.2/js/bootstrap.min.js}"></script>
+<script th:src="@{/js/装備.js}"></script>
+</body>
+</html>

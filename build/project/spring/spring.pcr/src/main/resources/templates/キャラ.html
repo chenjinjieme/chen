@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>キャラ</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.5.2/css/bootstrap.min.css}">
+</head>
+<body>
+<div class="container-fluid">
+    <div th:each="unit:${unitList}" th:with="id=${unit.id}+1000">
+        <div class="dropdown-divider"></div>
+        <div class="row">
+            <div class="col-2">
+                <input class="form-control form-control-sm" th:value="${unit.id}" readonly>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-2">
+                <img th:src="@{|/icon/キャラ/icon_unit_${id}11.png|}">
+            </div>
+            <div class="col-2">
+                <img th:src="@{|/icon/キャラ/icon_unit_${id}31.png|}">
+            </div>
+            <div class="col-2" th:if="${unit.icon}==3">
+                <img th:src="@{|/icon/キャラ/icon_unit_${id}61.png|}">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-2">
+                <input class="form-control form-control-sm" th:value="${unit.unit}" readonly>
+            </div>
+        </div>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="collapse" th:data-unit="${unit.unit}" onclick="init($(this))">ランクアップ装備</button>
+        <div class="row">
+            <div class="col-2">
+                <input class="form-control form-control-sm" th:value="${unit.status==null?unit.rank:unit.status}" readonly>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/webjars/jquery/3.5.1/jquery.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/4.5.2/js/bootstrap.min.js}"></script>
+<script th:src="@{/js/キャラ.js}"></script>
+<script th:src="@{/js/キャラ装備.js}"></script>
+</body>
+</html>

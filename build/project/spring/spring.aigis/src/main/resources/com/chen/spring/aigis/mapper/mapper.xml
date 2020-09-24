@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.chen.spring.aigis.mapper">
+    <resultMap id="unit" type="map">
+        <id property="id" column="id"/>
+        <result property="unit" column="unit"/>
+        <result property="own" column="own"/>
+        <collection property="pngList" javaType="list" ofType="map">
+            <id property="name" column="name"/>
+            <result property="url" column="url"/>
+            <result property="count" column="count"/>
+        </collection>
+    </resultMap>
+</mapper>

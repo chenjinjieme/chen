@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.chen.spring.pcr.mapper">
+    <resultMap id="equipment" type="map">
+        <id property="id" column="id"/>
+        <result property="equipment" column="equipment"/>
+        <result property="rare" column="rare"/>
+        <result property="rank" column="rank"/>
+        <result property="type" column="type"/>
+        <result property="item" column="item"/>
+        <result property="own" column="own"/>
+        <result property="left" column="own"/>
+        <collection property="materialList" javaType="list" ofType="map">
+            <id property="order" column="order"/>
+            <result property="id" column="mid"/>
+            <result property="material" column="material"/>
+            <result property="num" column="num"/>
+        </collection>
+    </resultMap>
+    <resultMap id="rank" type="Map">
+        <id property="rank" column="rank"/>
+        <collection property="equipmentList" javaType="List" ofType="Map">
+            <id property="order" column="order"/>
+            <result property="id" column="id"/>
+            <result property="equipment" column="equipment"/>
+            <result property="set" column="set"/>
+        </collection>
+    </resultMap>
+</mapper>
