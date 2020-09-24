@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>show</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.5.2/css/bootstrap.min.css}">
+</head>
+<body>
+<div class="container-fluid">
+    <nav class="navbar navbar-expand-sm bg-light">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="javascript:ne()">new</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="javascript:a()">all</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="javascript:nu()">null</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="javascript:l()">load</a>
+            </li>
+        </ul>
+    </nav>
+    <div class="row" hidden th:fragment="update">
+        <div class="input-group input-group-sm col-8">
+            <input class="form-control col-2">
+            <select class="form-control col-1">
+                <option value="-1">无</option>
+                <option value="0" selected="selected">女</option>
+                <option value="1">男</option>
+            </select>
+            <select class="form-control col-1">
+                <option th:each="rare:${rareList}" th:object="${rare}" th:value="*{id}" th:selected="*{id==7}" th:text="*{translate}"></option>
+            </select>
+            <select class="form-control col-4">
+                <option th:each="class:${classList}" th:object="${class}" th:value="*{id}" th:selected="*{id==1}" th:text="|*{class} / *{translate}|"></option>
+            </select>
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="update($(this))">更新名字</button>
+        </div>
+    </div>
+    <div>
+        <div th:each="unit:${unitList}" th:object="${unit}" th:class="*{unit}==''?'check null':(*{unit}!=null?'check':'')" th:hidden="*{unit}!=null and ${status}!='all' and (${status}=='new' or *{unit}!='')">
+            <div class="row">
+                <div class="col-2">
+                    <input class="form-control form-control-sm" th:value="*{id}" readonly>
+                </div>
+            </div>
+            <div class="row" th:switch="*{unit}">
+                <th:block th:case="null" th:include="::update"></th:block>
+                <div class="col-2" th:case="*">
+                    <input th:class="|form-control form-control-sm *{own==1?'text-primary':''}|" th:value="*{unit}" readonly>
+                </div>
+            </div>
+            <th:block th:each="png:*{pngList}" th:object="${png}">
+                <div class="row">
+                    <div class="col-2">
+                        <input th:class="|form-control form-control-sm *{count!=null?'text-primary':''}|" th:value="*{name}" readonly>
+                    </div>
+                </div>
+                <img th:data-original="|http://assets.millennium-war.net/*{url}|" src="http://assets.millennium-war.net/5d4750d4580320282bee09992fb752ae27e4958e/77e8475e8dd35ccb9dc7d8b6a9f86186">
+            </th:block>
+        </div>
+    </div>
+</div>
+<script th:src="@{/webjars/jquery/3.5.1/jquery.min.js}"></script>
+<script th:src="@{/js/jquery.lazyload.min.js}"></script>
+<script th:src="@{/js/show.js}"></script>
+</body>
+</html>

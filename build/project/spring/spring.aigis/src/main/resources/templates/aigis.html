@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>index</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.5.2/css/bootstrap.min.css}">
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-1">
+            <div class="input-group input-group-sm">
+                <div class="input-group-prepend">
+                    <div class="input-group-text">
+                        <input type="radio" name="sex" value="女" th:checked="${sex}=='女'">
+                    </div>
+                </div>
+                <div class="input-group-text form-control">女</div>
+            </div>
+            <div class="input-group input-group-sm">
+                <div class="input-group-prepend">
+                    <div class="input-group-text">
+                        <input type="radio" name="sex" value="男" th:checked="${sex}=='男'">
+                    </div>
+                </div>
+                <div class="input-group-text form-control">男</div>
+            </div>
+        </div>
+        <div class="col-1">
+            <div class="input-group input-group-sm" th:each="r:${rareList}" th:object="${r}">
+                <div class="input-group-prepend">
+                    <div class="input-group-text">
+                        <input type="radio" name="rare" th:value="*{rare}" th:checked="*{rare}==${rare}">
+                    </div>
+                </div>
+                <div class="input-group-text form-control" th:text="*{translate}"></div>
+            </div>
+        </div>
+        <div class="col-10 form-inline">
+            <div class="input-group input-group-sm" th:each="c:${classList}" th:object="${c}">
+                <div class="input-group-prepend">
+                    <div class="input-group-text">
+                        <input type="radio" name="class" th:value="*{class}" th:checked="*{class}==${clazz}">
+                    </div>
+                </div>
+                <div class="input-group-text form-control" th:text="|*{class} / *{translate}|"></div>
+            </div>
+        </div>
+    </div>
+    <div class="form-inline justify-content-center">
+        <div class="input-group input-group-sm" th:each="u:${unitList}" th:object="${u}">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <input type="radio" name="unit" th:value="*{unit}" th:checked="*{unit}==${unit}">
+                </div>
+            </div>
+            <div th:class="|input-group-text form-control*{own==1?' text-primary':''}|" th:text="*{unit}"></div>
+        </div>
+    </div>
+    <div class="form-inline justify-content-center">
+        <div class="input-group input-group-sm" th:each="p:${pngList}" th:object="${p}">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <input type="radio" name="png" th:value="*{name}" th:data-url="*{url}" th:checked="*{name}==${png}">
+                </div>
+            </div>
+            <div th:class="|input-group-text form-control*{count!=null?' text-primary':''}|" th:text="*{name}"></div>
+        </div>
+    </div>
+    <div class="text-center" style="min-height: 2000px">
+        <img th:if="${img!=null}" th:src="${img}">
+    </div>
+</div>
+<script th:src="@{/webjars/jquery/3.5.1/jquery.min.js}"></script>
+<script th:src="@{/js/aigis.js}"></script>
+</body>
+</html>
