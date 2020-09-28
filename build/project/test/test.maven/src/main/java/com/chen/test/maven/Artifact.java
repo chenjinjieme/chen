@@ -8,13 +8,14 @@ public class Artifact {
     private final Group group;
     private final String name;
     private final Map<String, Version> versionMap = new TreeMap<>();
-    private Resource metadata;
     private final Path path;
+    private final Resource metadata;
 
     public Artifact(Group group, String name) {
         this.group = group;
         this.name = name;
         path = group.path().resolve(name);
+        metadata = new Resource("maven-metadata-central.xml", path);
     }
 
     public Group group() {
@@ -38,7 +39,6 @@ public class Artifact {
     }
 
     public Artifact add(String file) {
-        if (metadata == null) metadata = new Resource("maven-metadata-central.xml", path);
         var suffix = file.substring(26);
         if (suffix.equals("")) metadata.resource(true);
         else if (suffix.equals(".sha1")) metadata.sha1(true);

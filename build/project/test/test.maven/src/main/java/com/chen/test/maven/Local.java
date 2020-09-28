@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,7 +15,11 @@ public class Local {
         this.local = local;
     }
 
-    public Repository repository() {
+    Path local() {
+        return local;
+    }
+
+    Repository repository() {
         return repository;
     }
 
@@ -26,7 +29,7 @@ public class Local {
             for (var iterator = stream.iterator(); iterator.hasNext(); ) {
                 var next = iterator.next();
                 var name = next.getFileName().toString();
-                if (name.equals("resolver-status.properties") || name.equals("_remote.repositories") || name.equals("maven-metadata-local.xml")) {
+                if (name.equals("resolver-status.properties") || name.equals("_remote.repositories") || name.equals("maven-metadata-local.xml") || name.startsWith(".")) {
                     Files.delete(next);
                     System.out.printf("delete %s\n", local.relativize(next));
                 } else System.out.printf("search %s\r", next);
@@ -53,7 +56,7 @@ public class Local {
                     var artifact = group.artifactMap().computeIfAbsent(artifactPath.getFileName().toString(), name -> new Artifact(group, name));
                     artifact.versionMap().computeIfAbsent(versionPath.getFileName().toString(), name -> new Version(artifact, name)).add(file);
                 }
-                System.out.printf("search %s\r", next);
+                System.out.printf("search %s\r", local.relativize(next));
             }
         }
     }
@@ -93,7 +96,7 @@ public class Local {
 
     public Local untracked() throws IOException {
         System.out.println("untracked");
-        var collect = repository.groupMap().values().stream().flatMap(group -> group.artifactMap().values().stream()).flatMap(artifact -> Stream.concat(Stream.ofNullable(artifact.metadata()), artifact.versionMap().values().stream().flatMap(version -> Stream.concat(Stream.of(version.pom(), version.jar()), version.classifierMap().values().stream().map(Classifier::jar))))).filter(Objects::nonNull).flatMap(resource -> Stream.of(resource.path(), resource.sha1Path())).filter(Objects::nonNull).map(local::resolve).collect(Collectors.toSet());
+        var collect = repository.groupMap().values().stream().flatMap(group -> group.artifactMap().values().stream()).flatMap(artifact -> Stream.concat(Stream.of(artifact.metadata()), artifact.versionMap().values().stream().flatMap(version -> Stream.concat(Stream.of(version.pom(), version.jar()), version.classifierMap().values().stream().map(Classifier::jar))))).flatMap(resource -> Stream.of(resource.path(), resource.sha1Path())).map(local::resolve).collect(Collectors.toSet());
         var list = new ArrayList<Path>();
         try (var stream = Files.walk(local).filter(path -> !Files.isDirectory(path))) {
             for (var iterator = stream.iterator(); iterator.hasNext(); ) {
@@ -104,7 +107,7 @@ public class Local {
                         Files.delete(next);
                         System.out.printf("delete %s\n", local.relativize(next));
                     } else list.add(next);
-                } else System.out.printf("search %s\r", next);
+                } else System.out.printf("search %s\r", local.relativize(next));
             }
         }
         list.forEach(path -> System.out.printf("untracked %s\n", local.resolve(path)));
@@ -121,7 +124,7 @@ public class Local {
             } else do {
                 var next = iterator.next();
                 if (Files.isDirectory(next)) empty(next);
-                System.out.printf("search %s\r", path);
+                System.out.printf("search %s\r", local.relativize(path));
             } while (iterator.hasNext());
         }
     }

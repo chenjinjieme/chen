@@ -5,13 +5,14 @@ import java.nio.file.Path;
 public class Classifier {
     private final Version version;
     private final String name;
-    private Resource jar;
     private final Path path;
+    private final Resource jar;
 
     public Classifier(Version version, String name) {
         this.version = version;
         this.name = name;
         path = version.path();
+        jar = new Resource(version.artifact().name() + '-' + version.name() + '-' + name + ".jar", path);
     }
 
     public Version version() {
@@ -31,9 +32,7 @@ public class Classifier {
     }
 
     public Classifier add(String file) {
-        var prefix = version.artifact().name() + '-' + version.name() + '-' + name;
-        if (jar == null) jar = new Resource(prefix + ".jar", path);
-        var suffix = file.substring(prefix.length() + 4);
+        var suffix = file.substring(version.artifact().name().length() + version.name().length() + name.length() + 6);
         if (suffix.equals("")) jar.resource(true);
         else if (suffix.equals(".sha1")) jar.sha1(true);
         return this;
