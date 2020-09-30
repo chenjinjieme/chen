@@ -22,11 +22,16 @@ public class File implements Path {
         return hash;
     }
 
-    public Object getValue() {
-        return hash;
+    public File hash(String hash) {
+        this.hash = hash;
+        return this;
     }
 
-    public int compareTo(Path o) {
-        return o instanceof Directory ? 1 : name.compareToIgnoreCase(o.name());
+    public boolean equals(Object o) {
+        return this == o || o instanceof Path && name.equals(((Path) o).name());
+    }
+
+    public int hashCode() {
+        return name.hashCode();
     }
 }
