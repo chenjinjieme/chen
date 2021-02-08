@@ -13,7 +13,7 @@
         <com.fasterxml.classmate>1.5.1</com.fasterxml.classmate>
         <com.fasterxml.jackson.core>2.11.2</com.fasterxml.jackson.core>
         <com.zaxxer.HikariCP>3.4.5</com.zaxxer.HikariCP>
-        <io.netty>4.1.52.Final</io.netty>
+        <io.netty>4.1.59.Final</io.netty>
         <io.projectreactor.reactor-core>3.3.10.RELEASE</io.projectreactor.reactor-core>
         <io.projectreactor.addons.reactor-extra>3.3.4.RELEASE</io.projectreactor.addons.reactor-extra>
         <io.projectreactor.netty.reactor-netty>0.9.12.RELEASE</io.projectreactor.netty.reactor-netty>
