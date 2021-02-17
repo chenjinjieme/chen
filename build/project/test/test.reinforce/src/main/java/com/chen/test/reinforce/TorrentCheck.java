@@ -44,7 +44,7 @@ public class TorrentCheck {
         var info = torrent.info();
         var name = info.name();
         var base = path.resolve(name);
-        var paths = info.files().stream().filter(file -> !file.path().getFileName().toString().startsWith("_____padding_file_")).map(file -> base.resolve(file.path())).collect(Collectors.toCollection(LinkedHashSet::new));
+        var paths = info.files().stream().map(file -> base.resolve(file.path())).collect(Collectors.toCollection(LinkedHashSet::new));
         var files = new TreeSet<Path>();
         pre(base, paths, files);
         synchronized (TorrentCheck.class) {
@@ -217,6 +217,10 @@ public class TorrentCheck {
 
     public static void preAll(Path path, Path base) throws IOException {
         doAll(path, base, TorrentCheck::pre);
+    }
+
+    public static void buildAll(Path path, Path base) throws IOException {
+        doAll(path, base, TorrentCheck::build);
     }
 
     public static void checkAll(Path path, Path base) throws IOException {
