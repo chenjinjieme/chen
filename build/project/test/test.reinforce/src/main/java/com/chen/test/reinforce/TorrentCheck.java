@@ -90,7 +90,7 @@ public class TorrentCheck {
         return this;
     }
 
-    private void check(ThreadLocal<MessageDigest> local, ByteBuffer buffer, ByteBuffer hash, AtomicInteger checked, AtomicInteger count, ByteBufferQueue queue) {
+    private void check(ThreadLocal<MessageDigest> local, ByteBuffer buffer, ByteBuffer hash, AtomicInteger checked, AtomicInteger count, ByteBufferQueue queue, Map<Path, Integer> files) {
         POOL.submit(() -> {
             var digest = local.get();
             digest.update(buffer);
@@ -102,6 +102,7 @@ public class TorrentCheck {
                     break;
                 }
             if (match) checked.incrementAndGet();
+            else files.forEach((file, length) -> System.out.printf("mismatch %s %s\n", length, file));
             count.incrementAndGet();
             queue.offer(buffer.clear());
         });
@@ -138,6 +139,7 @@ public class TorrentCheck {
         var buffer = queue.poll();
         var i = 0;
         var remaining = 0L;
+        var files = new LinkedHashMap<Path, Integer>();
         for (var file : info.files()) {
             var resolve = base.resolve(file.path());
             var offset = remaining;
@@ -151,19 +153,20 @@ public class TorrentCheck {
                 if (remaining > 0) {
                     if (offset < 0) open.position(-offset);
                     for (; remaining > pieceLength; remaining -= pieceLength, i++) {
-                        open.read(buffer);
+                        files.put(resolve, open.read(buffer));
                         if (buffer.position() < pieceLength) {
                             System.out.printf("less %s\n", resolve);
                             for (; remaining > pieceLength; remaining -= pieceLength, i++) count.incrementAndGet();
                             count.incrementAndGet();
                             buffer.clear();
                         } else {
-                            check(local, buffer.flip(), pieces.get(i).hash().duplicate(), checked, count, queue);
+                            check(local, buffer.flip(), pieces.get(i).hash().duplicate(), checked, count, queue, Map.copyOf(files));
                             buffer = queue.poll();
                         }
+                        files.clear();
                     }
                     if (remaining > 0) {
-                        open.read(buffer);
+                        var read = open.read(buffer);
                         var position = buffer.position();
                         if (position < remaining) {
                             System.out.printf("less %s\n", resolve);
@@ -174,7 +177,7 @@ public class TorrentCheck {
                         } else if (position > remaining) {
                             System.out.printf("long %s\n", resolve);
                             buffer.position((int) remaining);
-                        }
+                        } else files.put(resolve, read);
                     }
                 } else {
                     var l = open.size();
@@ -183,7 +186,7 @@ public class TorrentCheck {
                 }
             }
         }
-        if (remaining > 0) check(local, buffer.flip(), pieces.get(i).hash().duplicate(), checked, count, queue);
+        if (remaining > 0) check(local, buffer.flip(), pieces.get(i).hash().duplicate(), checked, count, queue, files);
         synchronized (this) {
             try {
                 for (; count.get() < size; ) this.wait(1000);
