@@ -122,7 +122,7 @@ org.webjars
 		0.46;
 org.xerial
 	sqlite-jdbc
-		3.34.0;
+		3.32.3.2;
 org.yaml
 	snakeyaml
 		1.28;
