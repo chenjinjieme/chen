@@ -24,11 +24,17 @@ public class Hash {
     private final Queue<MessageDigest> messageDigestQueue = new ConcurrentLinkedQueue<>();
     private final Queue<ByteBuffer> byteBufferQueue = new ConcurrentLinkedQueue<>();
     private CompletableFuture<Void> hashFuture = CompletableFuture.completedFuture(null);
+    private CompletableFuture<Void> asyncFuture = CompletableFuture.completedFuture(null);
     private CompletableFuture<Void> digestFuture = CompletableFuture.completedFuture(null);
     private final AtomicLong time = new AtomicLong();
     private final AtomicLong read = new AtomicLong();
     private final AtomicLong hash = new AtomicLong();
+    private final AtomicLong left = new AtomicLong();
+    private final AtomicInteger total = new AtomicInteger();
+    private final AtomicInteger count = new AtomicInteger();
+    private final AtomicInteger limit = new AtomicInteger(32768);
     private ScheduledExecutorService executor;
+    private Runnable print;
 
     public Hash(Path path) throws IOException {
         this.path = path;
@@ -43,9 +49,12 @@ public class Hash {
         return digest;
     }
 
-    private ByteBuffer getBuffer() {
+    private ByteBuffer getBuffer() throws InterruptedException {
         var buffer = byteBufferQueue.poll();
-        if (buffer == null) buffer = ByteBuffer.allocateDirect(8192);
+        if (buffer == null) if (limit.getAndDecrement() > 0) buffer = ByteBuffer.allocateDirect(8192);
+        else while ((buffer = byteBufferQueue.poll()) == null) synchronized (byteBufferQueue) {
+                byteBufferQueue.wait(1000);
+            }
         return buffer;
     }
 
@@ -53,11 +62,30 @@ public class Hash {
         time.set(System.currentTimeMillis());
         read.set(0);
         hash.set(0);
+        left.set(0);
+        total.set(0);
+        count.set(0);
     }
 
     private String iostat() {
         var l = System.currentTimeMillis() - time.get();
-        return String.format("%.2fm/s %.2fm/s", read.get() / 1048.576 / l, hash.get() / 1048.576 / l);
+        var h = hash.get();
+        var time = "00:00:00";
+        if (h > 0) {
+            var date = (long) (left.get() / 1000.0 / h * l);
+            var t = date % 60;
+            time = (t < 10 ? ":0" : ":") + t;
+            date /= 60;
+            t = date % 60;
+            time = date / 60 + (t < 10 ? ":0" : ":") + t + time;
+        }
+        return String.format("%.2fm/s %.2fm/s %s", read.get() / 1048.576 / l, h / 1048.576 / l, time);
+    }
+
+    private String count() {
+        var c = count.get();
+        var t = total.get();
+        return String.format("%s/%s %.2f%%", c, t, c * 100.0 / t);
     }
 
     private Directory find(Path base) {
@@ -66,21 +94,25 @@ public class Hash {
         return directory;
     }
 
-    private void hash(Path path, Consumer<String> consumer) {
+    private void hash(Path path, Consumer<String> consumer) throws IOException {
+        left.addAndGet(Files.size(path));
         hashFuture = hashFuture.thenRunAsync(new FutureTask<>(() -> {
             var digest = getDigest();
+            var asyncFuture = this.asyncFuture;
             try (var channel = Files.newByteChannel(path)) {
                 for (var buffer = getBuffer(); channel.read(buffer) > 0; buffer = getBuffer()) {
                     var byteBuffer = buffer;
                     read.addAndGet(buffer.position());
-                    digestFuture = digestFuture.thenRunAsync(() -> {
+                    asyncFuture = asyncFuture.thenRunAsync(() -> {
                         digest.update(byteBuffer.flip());
-                        hash.addAndGet(byteBuffer.position());
+                        var position = byteBuffer.position();
+                        hash.addAndGet(position);
+                        left.addAndGet(-position);
                         byteBufferQueue.offer(byteBuffer.clear());
                     });
                 }
             }
-            digestFuture = digestFuture.thenRunAsync(() -> {
+            digestFuture = asyncFuture.thenRunAsync(() -> {
                 consumer.accept(Hexs.getHex(digest.digest()));
                 messageDigestQueue.offer(digest);
             });
@@ -90,7 +122,7 @@ public class Hash {
 
     private void digest() throws InterruptedException {
         if (!hashFuture.isDone() || !digestFuture.isDone()) synchronized (this) {
-            hashFuture.thenRunAsync(() -> digestFuture.thenRunAsync(() -> {
+            hashFuture.thenRun(() -> digestFuture.thenRun(() -> {
                 synchronized (this) {
                     this.notify();
                 }
@@ -108,14 +140,17 @@ public class Hash {
                 for (var iterator = list.iterator(); iterator.hasNext(); ) add(directory, resolve, iterator.next());
             }
         } else {
+            total.incrementAndGet();
             var file = (File) parent.computeIfAbsent(name, key -> {
                 var value = new File(key, "");
-                System.out.printf("add %s %s\r", iostat(), resolve);
+                (print = () -> System.out.printf("add %s %s %s\r", iostat(), count(), resolve)).run();
                 return value;
             });
-            if (file.hash().length() == 0) hash(path, hash -> {
+            if (file.hash().length() != 0) count.incrementAndGet();
+            else hash(path, hash -> {
                 file.hash(hash);
-                System.out.printf("hash %s %s: %s\r", iostat(), resolve, hash);
+                count.incrementAndGet();
+                (print = () -> System.out.printf("hash %s %s %s: %s\r", iostat(), count(), resolve, hash)).run();
             });
         }
     }
@@ -124,9 +159,15 @@ public class Hash {
         System.out.println("add");
         System.out.println("----------------------------------------------------------------------------------------------------");
         reset();
+        var executor = Executors.newSingleThreadScheduledExecutor();
+        print = () -> System.out.printf("list %s %s\r", iostat(), count());
+        executor.scheduleWithFixedDelay(() -> print.run(), 0, 1, TimeUnit.SECONDS);
         add(find(base), base, path);
         digest();
+        print = null;
+        executor.shutdown();
         System.out.println(iostat());
+        System.out.println(count());
         System.out.println("----------------------------------------------------------------------------------------------------");
         System.out.println();
     }
@@ -220,7 +261,7 @@ public class Hash {
         System.out.println();
     }
 
-    public void check(Path base, Path path) throws InterruptedException {
+    public void check(Path base, Path path) throws IOException, InterruptedException {
         System.out.println("check");
         System.out.println("----------------------------------------------------------------------------------------------------");
         var baseMap = new LinkedHashMap<Path, String>();
@@ -253,7 +294,7 @@ public class Hash {
         System.out.println();
     }
 
-    private boolean equals(Path path1, Path path2) throws IOException {
+    private boolean equals(Path path1, Path path2) throws IOException, InterruptedException {
         try (var channel1 = FileChannel.open(path1); var channel2 = FileChannel.open(path2)) {
             if (channel1.size() != channel2.size()) return false;
             var buffer1 = getBuffer();
@@ -268,7 +309,7 @@ public class Hash {
         return true;
     }
 
-    public void link(Path base, Path path, Path disk) throws IOException {
+    public void link(Path base, Path path, Path disk) throws IOException, InterruptedException {
         System.out.println("link");
         System.out.println("----------------------------------------------------------------------------------------------------");
         var baseMap = new LinkedHashMap<Path, String>();
@@ -381,6 +422,7 @@ public class Hash {
         try (var write = Files.newBufferedWriter(path)) {
             yaml.dump(directory, write);
             System.out.println("-->save");
+            if (print != null) print.run();
         }
     }
 
