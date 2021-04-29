@@ -372,6 +372,9 @@ public class Hash {
                 var total = new AtomicInteger();
                 var check = new AtomicInteger();
                 reset();
+                var executor = Executors.newSingleThreadScheduledExecutor();
+                print = () -> System.out.printf("list %s %d %d/%d\r", iostat(), size.get(), check.get(), total.get());
+                executor.scheduleWithFixedDelay(() -> print.run(), 0, 1, TimeUnit.SECONDS);
                 try (var stream = Files.list(path)) {
                     for (var iterator = stream.iterator(); iterator.hasNext(); ) {
                         var next = iterator.next();
@@ -388,7 +391,7 @@ public class Hash {
                                     var get = check.incrementAndGet();
                                     if (name.equals(hash)) {
                                         Files.delete(file);
-                                        System.out.printf("check %s %d %d/%d %s\r", iostat(), size.get(), get, total.get(), hash);
+                                        print = () -> System.out.printf("check %s %d %d/%d %s\r", iostat(), size.get(), get, total.get(), hash);
                                     } else {
                                         Files.createDirectories(find);
                                         Files.move(file, find.resolve(name));
@@ -410,6 +413,7 @@ public class Hash {
                     }
                 }
                 digest();
+                print = null;
                 System.out.println(iostat());
                 if (size.get() == 0) Files.delete(path);
             } else System.out.println("null");
