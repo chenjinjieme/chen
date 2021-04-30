@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>index</title>
-    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.5.2/css/bootstrap.min.css}">
+    <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css">
 </head>
 <body>
 <div class="container-fluid">
@@ -71,7 +71,7 @@
         <img th:if="${img!=null}" th:src="${img}">
     </div>
 </div>
-<script th:src="@{/webjars/jquery/3.5.1/jquery.min.js}"></script>
+<script src="/webjars/jquery/jquery.min.js"></script>
 <script th:src="@{/js/aigis.js}"></script>
 </body>
 </html>

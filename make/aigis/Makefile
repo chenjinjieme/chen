@@ -40,8 +40,6 @@ RUNTIME_LIB := make/aigis/classes;\
 	$(org.thymeleaf/thymeleaf);\
 	$(org.thymeleaf/thymeleaf-spring5);\
 	$(org.unbescape/unbescape);\
-	$(org.webjars/bootstrap);\
-	$(org.webjars/jquery);\
 	$(org.xerial/sqlite-jdbc);\
 	$(org.yaml/snakeyaml)
 

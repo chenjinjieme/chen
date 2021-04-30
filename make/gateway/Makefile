@@ -9,17 +9,26 @@ RUNTIME_LIB := make/gateway/classes;\
 	$(ch.qos.logback/logback-classic);\
 	$(ch.qos.logback/logback-core);\
 	$(com.fasterxml/classmate);\
+	$(com.fasterxml.jackson.core/jackson-annotations);\
+	$(com.fasterxml.jackson.core/jackson-core);\
+	$(com.fasterxml.jackson.core/jackson-databind);\
+	$(io.github.classgraph/classgraph);\
 	$(io.netty/netty-buffer);\
 	$(io.netty/netty-codec);\
+	$(io.netty/netty-codec-dns);\
 	$(io.netty/netty-codec-http);\
+	$(io.netty/netty-codec-http2);\
 	$(io.netty/netty-common);\
 	$(io.netty/netty-handler);\
 	$(io.netty/netty-handler-proxy);\
 	$(io.netty/netty-resolver);\
+	$(io.netty/netty-resolver-dns);\
 	$(io.netty/netty-transport);\
+	$(io.netty/netty-transport-native-unix-common);\
 	$(io.projectreactor/reactor-core);\
 	$(io.projectreactor.addons/reactor-extra);\
-	$(io.projectreactor.netty/reactor-netty);\
+	$(io.projectreactor.netty/reactor-netty-core);\
+	$(io.projectreactor.netty/reactor-netty-http);\
 	$(jakarta.validation/jakarta.validation-api);\
 	$(org.hibernate.validator/hibernate-validator);\
 	$(org.jboss.logging/jboss-logging);\
@@ -38,7 +47,11 @@ RUNTIME_LIB := make/gateway/classes;\
 	$(org.springframework.boot/spring-boot-autoconfigure);\
 	$(org.springframework.cloud/spring-cloud-commons);\
 	$(org.springframework.cloud/spring-cloud-context);\
-	$(org.springframework.cloud/spring-cloud-gateway-core);\
+	$(org.springframework.cloud/spring-cloud-gateway-server);\
+	$(org.springframework.security/spring-security-crypto);\
+	$(org.webjars/bootstrap);\
+	$(org.webjars/jquery);\
+	$(org.webjars/webjars-locator-core);\
 	$(org.yaml/snakeyaml)
 
 COMPILE_LIB := $(subst ; ,:,$(COMPILE_LIB))

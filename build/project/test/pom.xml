@@ -4,13 +4,14 @@
     <parent>
         <groupId>com.chen</groupId>
         <artifactId>project</artifactId>
-        <version>0.8.0</version>
+        <version>0.8.1</version>
     </parent>
     <artifactId>test</artifactId>
     <packaging>pom</packaging>
     <modules>
         <module>test.hash</module>
         <module>test.html</module>
+        <module>test.maven</module>
         <module>test.nhentai</module>
         <module>test.reinforce</module>
     </modules>

@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.chen</groupId>
         <artifactId>spring</artifactId>
-        <version>0.8.0</version>
+        <version>0.8.1</version>
     </parent>
     <artifactId>spring.aigis</artifactId>
     <dependencies>
@@ -61,16 +61,6 @@
         <dependency>
             <groupId>org.thymeleaf</groupId>
             <artifactId>thymeleaf-spring5</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>bootstrap</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.webjars</groupId>
-                    <artifactId>popper.js</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.xerial</groupId>

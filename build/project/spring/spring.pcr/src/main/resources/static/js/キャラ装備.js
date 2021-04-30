@@ -41,6 +41,6 @@ function setAll(o) {
 }
 
 function count(o) {
-    let all = o.prevAll(), length = all.length * 6 - all.children("div.row").find("button").length;
-    o.next().children().html(`<div class="input-group input-group-sm">\n<input class="form-control form-control-sm" value="${Math.floor(length / 6)}" readonly>\n<input class="form-control form-control-sm" value="${length % 6}" readonly>\n</div>`);
+    let all = o.prevAll(), length = all.length * 6 - all.children("div.row").find("button").length - 1;
+    o.next().children().html(`<div class="input-group input-group-sm">\n<input class="form-control form-control-sm" value="${Math.floor(length / 6)}" readonly>\n<input class="form-control form-control-sm" value="${length % 6 + 1}" readonly>\n</div>`);
 }
