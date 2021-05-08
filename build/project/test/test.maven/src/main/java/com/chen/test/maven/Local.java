@@ -3,9 +3,9 @@ package com.chen.test.maven;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.TreeSet;
 
 public class Local {
     private final Path local;
@@ -23,115 +23,120 @@ public class Local {
         return repository;
     }
 
-    public Local clean() throws IOException {
-        System.out.println("clean");
-        try (var stream = Files.walk(local)) {
-            for (var iterator = stream.iterator(); iterator.hasNext(); ) {
-                var next = iterator.next();
-                var name = next.getFileName().toString();
-                if (name.equals("resolver-status.properties") || name.equals("_remote.repositories") || name.equals("maven-metadata-local.xml") || name.startsWith(".")) {
-                    Files.delete(next);
-                    System.out.printf("delete %s\n", local.relativize(next));
-                } else System.out.printf("search %s\r", next);
-            }
-        }
-        System.out.println("----------------------------------------------------------------------------------------------------");
-        return this;
-    }
-
-    private void find(Path path) throws IOException {
+    private void find(Path path, Version version) throws IOException {
+        var prefix = version.prefix();
+        var length = prefix.length();
         try (var stream = Files.list(path)) {
             for (var iterator = stream.iterator(); iterator.hasNext(); ) {
                 var next = iterator.next();
-                var file = next.getFileName().toString();
-                if (Files.isDirectory(next)) find(next);
-                else if (file.startsWith("maven-metadata-central.xml")) {
-                    var artifactPath = local.relativize(next.getParent());
-                    var group = repository.groupMap().computeIfAbsent(artifactPath.getParent(), Group::parse);
-                    group.artifactMap().computeIfAbsent(artifactPath.getFileName().toString(), name -> new Artifact(group, name)).add(file);
-                } else {
-                    var versionPath = local.relativize(next.getParent());
-                    var artifactPath = versionPath.getParent();
-                    var group = repository.groupMap().computeIfAbsent(artifactPath.getParent(), Group::parse);
-                    var artifact = group.artifactMap().computeIfAbsent(artifactPath.getFileName().toString(), name -> new Artifact(group, name));
-                    artifact.versionMap().computeIfAbsent(versionPath.getFileName().toString(), name -> new Version(artifact, name)).add(file);
+                if (!Files.isDirectory(next)) {
+                    var name = next.getFileName().toString();
+                    if (name.endsWith(".jar") && name.startsWith(prefix)) {
+                        var end = name.length() - 4;
+                        if (end == length) version.classifier("", name);
+                        else if (name.charAt(length) == '-') version.classifier(name.substring(length + 1, end), name);
+                    }
                 }
-                System.out.printf("search %s\r", local.relativize(next));
+            }
+        }
+    }
+
+    private void find(Iterator<Path> iterator, Artifact artifact) throws IOException {
+        var name = artifact.name();
+        while (iterator.hasNext()) {
+            var next = iterator.next();
+            if (Files.isDirectory(next)) {
+                var file = next.getFileName().toString();
+                if (Files.exists(next.resolve(name + "-" + file + ".pom"))) find(next, artifact.version(file));
+            }
+        }
+    }
+
+    private void find(Path path, Artifact artifact) throws IOException {
+        try (var stream = Files.list(path)) {
+            find(stream.iterator(), artifact);
+        }
+    }
+
+    private void find(Path path, Group group, String name) throws IOException {
+        if (Files.exists(path.resolve("maven-metadata.xml"))) find(path, group.artifact(name));
+        else try (var stream = Files.list(path)) {
+            for (var iterator = stream.iterator(); iterator.hasNext(); ) {
+                var next = iterator.next();
+                if (Files.isDirectory(next)) {
+                    var file = next.getFileName().toString();
+                    if (Files.exists(next.resolve(name + "-" + file + ".pom"))) {
+                        var artifact = group.artifact(name);
+                        find(next, artifact.version(file));
+                        find(iterator, artifact);
+                    } else find(next, group.group(name), file);
+                }
+            }
+        }
+    }
+
+    private void find(Path path, Group group) throws IOException {
+        try (var stream = Files.list(path)) {
+            for (var iterator = stream.iterator(); iterator.hasNext(); ) {
+                var next = iterator.next();
+                if (Files.isDirectory(next)) find(next, group, next.getFileName().toString());
             }
         }
     }
 
     public Local find() throws IOException {
         System.out.println("find");
-        find(local);
-        System.out.println("----------------------------------------------------------------------------------------------------");
-        return this;
-    }
-
-    private void print(String prefix, Resource resource) {
-        if (resource != null) {
-            var name = resource.name();
-            if (resource.resource()) System.out.printf(prefix + "%s\n", name);
-            if (resource.sha1()) System.out.printf(prefix + "%s.sha1\n", name);
-        }
-    }
-
-    public Local tree() {
-        repository.groupMap().forEach((path, group) -> {
-            System.out.println(group.name());
-            group.artifactMap().forEach((artifactName, artifact) -> {
-                System.out.printf("  %s\n", artifactName);
-                print("    ", artifact.metadata());
-                artifact.versionMap().forEach((versionName, version) -> {
-                    System.out.printf("    %s\n", versionName);
-                    print("      ", version.pom());
-                    print("      ", version.jar());
-                    version.classifierMap().forEach((classifierName, classifier) -> print("      ", classifier.jar()));
-                });
-            });
-        });
-        System.out.println("----------------------------------------------------------------------------------------------------");
-        return this;
-    }
-
-    public Local untracked() throws IOException {
-        System.out.println("untracked");
-        var collect = repository.groupMap().values().stream().flatMap(group -> group.artifactMap().values().stream()).flatMap(artifact -> Stream.concat(Stream.of(artifact.metadata()), artifact.versionMap().values().stream().flatMap(version -> Stream.concat(Stream.of(version.pom(), version.jar()), version.classifierMap().values().stream().map(Classifier::jar))))).flatMap(resource -> Stream.of(resource.path(), resource.sha1Path())).map(local::resolve).collect(Collectors.toSet());
-        var list = new ArrayList<Path>();
-        try (var stream = Files.walk(local).filter(path -> !Files.isDirectory(path))) {
+        try (var stream = Files.list(local)) {
             for (var iterator = stream.iterator(); iterator.hasNext(); ) {
                 var next = iterator.next();
-                var name = next.toString();
-                if (!collect.contains(next)) {
-                    if (name.endsWith(".lastUpdated") || name.endsWith(".part") || name.endsWith(".lock") || name.endsWith(".md5")) {
-                        Files.delete(next);
-                        System.out.printf("delete %s\n", local.relativize(next));
-                    } else list.add(next);
-                } else System.out.printf("search %s\r", local.relativize(next));
+                if (Files.isDirectory(next)) find(next, repository.group(next.getFileName().toString()));
             }
         }
-        list.forEach(path -> System.out.printf("untracked %s\n", local.resolve(path)));
         System.out.println("----------------------------------------------------------------------------------------------------");
         return this;
     }
 
-    private void empty(Path path) throws IOException {
-        try (var stream = Files.list(path)) {
-            var iterator = stream.iterator();
-            if (!iterator.hasNext()) {
-                Files.delete(path);
-                System.out.printf("delete %s\n", local.relativize(path));
-            } else do {
-                var next = iterator.next();
-                if (Files.isDirectory(next)) empty(next);
-                System.out.printf("search %s\r", local.relativize(path));
-            } while (iterator.hasNext());
-        }
+    private void resource(Collection<Path> collection, Resource resource) {
+        collection.add(local.resolve(resource.path()));
+        collection.add(local.resolve(resource.sha1()));
     }
 
-    public Local empty() throws IOException {
-        System.out.println("empty");
-        empty(local);
+    private boolean clean(Path path, Collection<Path> collection) throws IOException {
+        System.out.printf("search %s\r", local.relativize(path));
+        var count = 0;
+        try (var stream = Files.list(path)) {
+            for (var iterator = stream.iterator(); iterator.hasNext(); ) {
+                var next = iterator.next();
+                if (Files.isDirectory(next)) {
+                    if (!clean(next, collection)) count++;
+                } else if (collection.contains(next)) {
+                    count++;
+                    System.out.printf("match %s\r", local.relativize(next));
+                } else {
+                    Files.delete(next);
+                    System.out.printf("delete %s\n", local.relativize(next));
+                }
+            }
+        }
+        if (count == 0) {
+            Files.delete(path);
+            System.out.printf("delete %s\n", local.relativize(path));
+            return true;
+        } else return false;
+    }
+
+    public Local clean() throws IOException {
+        System.out.println("clean");
+        var set = new TreeSet<Path>();
+        for (Group group : repository)
+            for (Artifact artifact : group) {
+                resource(set, artifact.metadata());
+                for (Version version : artifact) {
+                    resource(set, version.pom());
+                    for (Classifier classifier : version) resource(set, classifier.jar());
+                }
+            }
+        clean(local, set);
         System.out.println("----------------------------------------------------------------------------------------------------");
         return this;
     }

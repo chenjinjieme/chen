@@ -1,24 +1,24 @@
 package com.chen.test.maven;
 
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class Version {
+public class Version implements Iterable<Classifier> {
     private final Artifact artifact;
     private final String name;
-    private final Map<String, Classifier> classifierMap = new TreeMap<>();
+    private final String prefix;
     private final Path path;
     private final Resource pom;
-    private final Resource jar;
+    private final Map<String, Classifier> classifierMap = new TreeMap<>();
 
     public Version(Artifact artifact, String name) {
         this.artifact = artifact;
         this.name = name;
+        prefix = artifact.name() + '-' + name;
         path = artifact.path().resolve(name);
-        var prefix = artifact.name() + '-' + name;
-        pom = new Resource(prefix + ".pom", path);
-        jar = new Resource(prefix + ".jar", path);
+        pom = new Resource(path, prefix + ".pom");
     }
 
     public Artifact artifact() {
@@ -29,30 +29,23 @@ public class Version {
         return name;
     }
 
-    Map<String, Classifier> classifierMap() {
-        return classifierMap;
-    }
-
-    public Resource pom() {
-        return pom;
-    }
-
-    public Resource jar() {
-        return jar;
+    public String prefix() {
+        return prefix;
     }
 
     public Path path() {
         return path;
     }
 
-    public Version add(String file) {
-        var suffix = file.substring(artifact.name().length() + name.length() + 1);
-        if (suffix.charAt(0) == '.') {
-            var resource = suffix.startsWith(".pom") ? pom : suffix.startsWith(".jar") ? jar : null;
-            suffix = suffix.substring(4);
-            if (suffix.equals("")) resource.resource(true);
-            else if (suffix.equals(".sha1")) resource.sha1(true);
-        } else classifierMap.computeIfAbsent(suffix.substring(1, suffix.indexOf(".")), name -> new Classifier(this, name)).add(file);
-        return this;
+    public Resource pom() {
+        return pom;
+    }
+
+    public Classifier classifier(String name, String file) {
+        return classifierMap.computeIfAbsent(name, classifier -> new Classifier(this, classifier, file));
+    }
+
+    public Iterator<Classifier> iterator() {
+        return classifierMap.values().iterator();
     }
 }

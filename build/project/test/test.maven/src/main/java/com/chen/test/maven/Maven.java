@@ -1,6 +1,8 @@
 package com.chen.test.maven;
 
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Maven {
     private final Local local;
@@ -11,23 +13,23 @@ public class Maven {
         this.remote = remote;
     }
 
+    private void check(Path path, Path file) {
+        if (!Files.exists(file)) {
+            remote.download(URI.create(path.toString()), file, path);
+            System.out.printf("downloading %s\n", path);
+        }
+    }
+
+    private void check(Path local, Resource resource) {
+        var path = resource.path();
+        check(path, local.resolve(path));
+        var sha1 = resource.sha1();
+        check(sha1, local.resolve(sha1));
+    }
+
     public Maven check() throws InterruptedException {
         System.out.println("check");
-        var localPath = local.local();
-        local.repository().groupMap().values().stream().flatMap(group -> group.artifactMap().values().stream()).forEach(artifact -> {
-            var metadata = artifact.metadata();
-            if (!metadata.resource()) {
-                var metadataPath = metadata.path();
-                remote.download(URI.create(metadataPath.toString().replace('\\', '/')), localPath, metadataPath);
-                metadata.resource(true);
-                System.out.printf("downloading %s\n", metadataPath);
-            } else if (!metadata.sha1()) {
-                var sha1Path = metadata.sha1Path();
-                remote.download(URI.create(sha1Path.toString().replace('\\', '/')), localPath, sha1Path);
-                metadata.sha1(true);
-                System.out.printf("downloading %s\n", sha1Path);
-            }
-        });
+        for (Group group : local.repository()) for (Artifact artifact : group) check(local.local(), artifact.metadata());
         remote.get();
         System.out.println("----------------------------------------------------------------------------------------------------");
         return this;
